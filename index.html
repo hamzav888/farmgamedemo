@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#6ab04c">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Barn Farm">
+<title>Sunny Barn Farm 🐄</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="stage">
+  <canvas id="game" width="1280" height="800"></canvas>
+
+  <!-- HUD -->
+  <div id="hud">
+    <div id="hud-left">
+      <div id="title-pill">🐄 Sunny Barn Farm 🐔</div>
+      <div id="star-pill">⭐ 0</div>
+    </div>
+    <div id="hud-buttons">
+      <button id="btn-daynight" class="hud-btn" title="Day / Night">🌞</button>
+      <button id="btn-sound" class="hud-btn" title="Sounds on/off">🔊</button>
+      <button id="btn-music" class="hud-btn" title="Music on/off">🎵</button>
+      <button id="btn-help" class="hud-btn" title="How to play">❓</button>
+    </div>
+  </div>
+
+  <!-- Barn scene controls -->
+  <div id="barn-ui" class="hidden">
+    <button id="btn-outside" class="big-btn">🚪 Go Outside</button>
+    <div id="barn-hint">🌙 Tap the sleeping animals to count them!</div>
+    <div id="barn-actions">
+      <button id="btn-quiz" class="big-btn quiz">🧮 Quiz Me!</button>
+      <button id="btn-recount" class="big-btn soft">🔄 Count Again</button>
+    </div>
+  </div>
+
+  <!-- Learning card -->
+  <div id="card" class="hidden">
+    <div id="card-emoji">🐄</div>
+    <div id="card-text">
+      <div id="card-name">COW</div>
+      <div id="card-sub">The cow says <b>Moo!</b></div>
+    </div>
+  </div>
+
+  <!-- Narrator subtitle -->
+  <div id="subtitle" class="hidden"></div>
+
+  <!-- Quiz panel -->
+  <div id="quiz" class="hidden">
+    <div id="quiz-q">How many pigs are sleeping?</div>
+    <div id="quiz-choices"></div>
+  </div>
+
+  <!-- Barn tap hint arrow -->
+  <div id="tap-hint" class="hidden">👇 Tap the barn!</div>
+
+  <!-- Fader -->
+  <div id="fader"></div>
+
+  <!-- Start / Help screen -->
+  <div id="splash">
+    <div class="splash-box">
+      <h1>🐄 Sunny Barn Farm 🐔</h1>
+      <p class="tag">A farm to explore, listen to, and count on!</p>
+      <ul class="howto">
+        <li><span>👆</span><div>Tap an animal to hear its <b>name</b> and <b>sound</b></div></li>
+        <li><span>✌️</span><div>Tap it <b>twice</b> to see it do a trick</div></li>
+        <li><span>🏠</span><div>Tap the <b>big red barn</b> to go inside</div></li>
+        <li><span>🌞🌙</span><div>Use the sun / moon button to change day and night</div></li>
+        <li><span>🔢</span><div>At <b>night</b>, count the sleeping animals in the barn!</div></li>
+      </ul>
+      <button id="btn-start">▶ Let's Play!</button>
+      <p class="tiny">Turn your sound on! 🔊</p>
+    </div>
+  </div>
+</div>
+
+<!-- Portrait phones: ask for landscape -->
+<div id="rotate">
+  <div class="phone">📱</div>
+  <p>Turn your phone sideways to play!</p>
+</div>
+
+<script src="js/util.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/voice.js"></script>
+<script src="js/animals.js"></script>
+<script src="js/scenery.js"></script>
+<script src="js/farm.js"></script>
+<script src="js/barn.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
