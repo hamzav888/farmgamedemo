@@ -1,0 +1,6 @@
+# local-dev only — the deployed site is just the static game files
+serve.py
+Start Farm Game.bat
+.claude/
+.tmp/
+README.md

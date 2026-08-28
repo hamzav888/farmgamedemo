@@ -24,6 +24,17 @@ then open <http://localhost:8080/> in your browser (it opens automatically).
 
 **Option 3 – any static server**, e.g. `npx serve -l 8080` from this folder.
 
+## ☁️ Host it on Vercel
+
+The game is 100% static, so Vercel needs **no build step**:
+
+1. Go to <https://vercel.com/new> and import the `farmgamedemo` GitHub repo.
+2. Framework preset: **Other** — leave *Build Command* empty and *Output Directory* as the repo root.
+3. Click **Deploy**. Done — every push to `main` redeploys automatically.
+
+(`vercel.json` sets sensible cache headers; `.vercelignore` keeps the local-dev
+files like `serve.py` out of the deployment. Or from a terminal: `npx vercel`.)
+
 > Turn your sound on 🔊 and click **▶ Let's Play!** — browsers only allow audio after a tap.
 
 ## 🎮 How to play
