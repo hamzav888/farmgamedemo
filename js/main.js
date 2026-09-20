@@ -13,6 +13,7 @@ class Game {
     this.lastTime = 0; this.t = 0;
     this._pendingClick = null; this._lastDown = { t: 0, x: 0, y: 0 };
     this.cardTimer = null; this.barnVisited = false; this.hintT = 0;
+    this.miniGame = null;
     try { this.stars = parseInt(localStorage.getItem('sbf_stars') || '0', 10) || 0; } catch (e) { this.stars = 0; }
     this._setupDPR();
     this._resize(); window.addEventListener('resize', () => this._resize());
@@ -21,6 +22,8 @@ class Game {
     this._bindUI();
     this._bindInput();
     this._applyUrlFlags();
+    this._drawSplashAnimals();
+    this._registerSW();
     requestAnimationFrame(ts => this._frame(ts));
   }
   // Optional URL flags for quick testing: ?start  ?night  ?barn  ?quiz  ?card
@@ -30,11 +33,56 @@ class Game {
     setTimeout(() => {
       this.start();
       if (q.has('night')) { this.setMode('night', false); this.dark = 1; this.farm.animals.forEach(a => a.hidden = true); }
-      if (q.has('barn')) { this.sceneName = 'barn'; this.barn.enter(); this.$barnUI.classList.remove('hidden'); Sfx.setMuffled(true); this._updateBarnUI(); }
+      if (q.has('barn')) { this.sceneName = 'barn'; this.barn.enter(); this.$barnUI.classList.remove('hidden'); Sfx.setMuffled(true); this._updateBarnUI(); this._updateFarmUI(); }
       if (q.has('quiz')) setTimeout(() => this.barn.startQuiz(), 300);
       if (q.has('card')) setTimeout(() => this.introduce(this.farm.animals[0]), 300);
     }, 50);
   }
+  /* The row of animals on the start screen is drawn with drawSpecies() — the
+     same code that draws them in the game — so the front page always shows the
+     real thing, and so does the app icon (see tools/make-icons.html). */
+  _drawSplashAnimals() {
+    const c = document.getElementById('splash-animals');
+    if (!c) return;
+    const W = 760, H = 150, dpr = Math.min(2, window.devicePixelRatio || 1);
+    c.width = W * dpr; c.height = H * dpr;
+    const ctx = c.getContext('2d');
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, W, H);
+
+    // a strip of grass for them to stand on
+    D.fillRR(ctx, 0, H - 34, W, 34, 17, '#7fc24a');
+    ctx.save(); D.rr(ctx, 0, H - 34, W, 34, 17); ctx.clip();
+    for (let i = 0; i < 46; i++) {
+      const x = 8 + i * 16.4, y = H - 26 + (i % 3) * 4;
+      D.line(ctx, x, y, x + 3, y - 8, '#6ab04c', 3);
+    }
+    ctx.restore();
+
+    const cast = [['cow', 0], ['horse', 0], ['pig', 0], ['sheep', 0], ['chicken', 1], ['duck', 0], ['cat', 0]];
+    const pose = { t: 0, dir: 1, moving: false, run: false, phase: 0, sleeping: false, graze: false, peck: false, happy: true, talk: 0, blink: false, inWater: false, action: null };
+    const gap = W / cast.length, baseY = H - 18;
+    cast.forEach(([sp, v], i) => {
+      const cfg = SPECIES[sp];
+      // even up the row without losing every hint of who is bigger
+      const shown = 78 * Math.pow(cfg.h / 70, 0.4);
+      const k = shown / cfg.h;
+      ctx.save();
+      ctx.translate(gap * (i + 0.5), baseY);
+      ctx.scale(k, k);
+      drawSpecies(ctx, sp, cfg.variants[v], pose);
+      ctx.restore();
+    });
+  }
+
+  _registerSW() {
+    // lets the game be installed and played with no connection at all.
+    // The Game is built during window 'load', so registering must not wait for
+    // that event again — it has already fired. Just defer past the first paint.
+    if (!('serviceWorker' in navigator) || location.protocol === 'file:') return;
+    setTimeout(() => navigator.serviceWorker.register('sw.js').catch(() => { }), 800);
+  }
+
   _setupDPR() {
     const dpr = Math.min(2, window.devicePixelRatio || 1);
     this.canvas.width = this.W * dpr; this.canvas.height = this.H * dpr;
@@ -62,7 +110,10 @@ class Game {
     $('btn-outside').addEventListener('click', () => this.exitBarn());
     $('btn-quiz').addEventListener('click', () => { Sfx.play('pop'); if (this.barn.quiz && this.barn.quiz.state === 'ask') { this.barn.stopQuiz(); this.barn.resetCounts(); } else this.barn.startQuiz(); });
     $('btn-recount').addEventListener('click', () => { Sfx.play('pop'); this.barn.stopQuiz(); this.barn.resetCounts(); this.narrate('Okay! Tap the animals to count them again.'); });
+    $('btn-listen').addEventListener('click', () => { Sfx.play('pop'); if (this.miniGame === 'listen') this.farm.stopListen(); else this.farm.startListen(); });
+    $('btn-eggs').addEventListener('click', () => { Sfx.play('pop'); if (this.miniGame === 'eggs') this.farm.stopEggHunt(); else this.farm.startEggHunt(); });
     this.$card = $('card'); this.$quiz = $('quiz'); this.$tapHint = $('tap-hint'); this.$barnUI = $('barn-ui'); this.$hint = $('barn-hint');
+    this.$farmUI = $('farm-ui');
     $('star-pill').textContent = '⭐ ' + this.stars;
   }
   addStars(n) {
@@ -85,6 +136,7 @@ class Game {
     Sfx.init(); Voice.init();
     Sfx.startAmbient('day'); Sfx.startMusic('day');
     this.hintT = 14; this.$tapHint.classList.remove('hidden');
+    this._updateFarmUI();
     setTimeout(() => this.narrate('Welcome to Sunny Barn Farm! Tap the animals to say hello!'), 400);
   }
   _bindInput() {
@@ -136,6 +188,28 @@ class Game {
     if (mode === 'night' && this.sceneName === 'farm' && this.started) { this.hintT = 12; this.$tapHint.classList.remove('hidden'); }
     this._updateBarnUI();
   }
+  /* ----- mini-games ----- */
+  setMiniGame(name) {
+    this.miniGame = name;
+    // a game must never be cut short by the clock rolling round to night
+    this.autoCycle = !name;
+    const L = document.getElementById('btn-listen'), E = document.getElementById('btn-eggs');
+    L.textContent = name === 'listen' ? '✖ Stop' : '🎧 Listen!';
+    E.textContent = name === 'eggs' ? '✖ Stop' : '🥚 Egg Hunt!';
+    L.classList.toggle('active', name === 'listen');
+    E.classList.toggle('active', name === 'eggs');
+  }
+  // Starting an outdoor game at night: bring everyone back out rather than
+  // telling a three-year-old "not now".
+  wakeUpForGame(cb) {
+    this.farm.emergeRush = true;
+    if (this.sceneName === 'barn') this.exitBarn();
+    this.setMode('day', false);
+    setTimeout(() => { this.farm.emergeRush = false; cb(); }, 2000);
+  }
+  _updateFarmUI() {
+    this.$farmUI.classList.toggle('hidden', !(this.started && this.sceneName === 'farm'));
+  }
   _updateBarnUI() {
     if (this.sceneName !== 'barn') return;
     const night = this.mode === 'night';
@@ -154,7 +228,8 @@ class Game {
     Sfx.play('door'); this.barnVisited = true; this.$tapHint.classList.add('hidden');
     this.fade(() => {
       this.sceneName = 'barn'; this.barn.enter();
-      this.$barnUI.classList.remove('hidden');
+      this.farm.stopMiniGames();
+      this.$barnUI.classList.remove('hidden'); this._updateFarmUI();
       Sfx.setMuffled(true);
       this._updateBarnUI();
       this.hideCard();
@@ -166,7 +241,7 @@ class Game {
     if (this.sceneName === 'farm') return;
     Sfx.play('door');
     this.fade(() => {
-      this.sceneName = 'farm'; this.$barnUI.classList.add('hidden');
+      this.sceneName = 'farm'; this.$barnUI.classList.add('hidden'); this._updateFarmUI();
       Sfx.setMuffled(false); this.barn.stopQuiz(); this.hideCard();
     });
   }

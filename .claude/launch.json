@@ -3,7 +3,7 @@
   "configurations": [
     {
       "name": "farm-game",
-      "runtimeExecutable": "python",
+      "runtimeExecutable": "python3",
       "runtimeArgs": ["serve.py", "8080", "--no-open"],
       "port": 8080
     }

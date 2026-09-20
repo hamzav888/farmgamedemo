@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Sunny Barn Farm — icon generator</title>
+<style>
+  body { font-family: system-ui, sans-serif; background: #2c3e50; color: #ecf0f1; padding: 20px; }
+  h2 { font-weight: 600; font-size: 15px; margin: 22px 0 8px; opacity: .8; }
+  .row { display: flex; gap: 16px; align-items: flex-end; flex-wrap: wrap; }
+  figure { margin: 0; text-align: center; font-size: 11px; opacity: .75; }
+  canvas { background: #1a252f; border-radius: 6px; display: block; margin-bottom: 4px; }
+</style>
+</head>
+<body>
+<h2>App icon — a little scene from the farm</h2>
+<div class="row" id="scene"></div>
+<h2>Favicon — the app's own cow, framed close so it still reads at 16px</h2>
+<div class="row" id="face"></div>
+
+<!-- the real game art: the icons are drawn with the exact same code the game uses -->
+<script src="../js/util.js"></script>
+<script src="../js/animals.js"></script>
+<script src="../js/scenery.js"></script>
+<script>
+/* ---------------------------------------------------------------
+   Both icon designs call drawSpecies()/S.barn() — the same functions
+   that draw the running game — so the icon can never drift from the
+   art in the app. Re-run this page after changing the animal art.
+----------------------------------------------------------------*/
+
+// a still, awake, happy animal pose
+const POSE = (t = 0) => ({
+  t, dir: 1, moving: false, run: false, phase: 0, sleeping: false,
+  graze: false, peck: false, happy: true, talk: 0, blink: false,
+  inWater: false, action: null
+});
+
+function sky(ctx, S0) {
+  const g = ctx.createLinearGradient(0, 0, 0, S0);
+  g.addColorStop(0, '#8fd3ff'); g.addColorStop(0.44, '#bfe9ff'); g.addColorStop(0.45, '#7fc24a');
+  g.addColorStop(1, '#5aa832');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, S0, S0);
+  // rolling hill
+  ctx.beginPath();
+  ctx.moveTo(0, S0 * 0.50);
+  ctx.quadraticCurveTo(S0 * 0.3, S0 * 0.38, S0 * 0.62, S0 * 0.48);
+  ctx.quadraticCurveTo(S0 * 0.85, S0 * 0.54, S0, S0 * 0.45);
+  ctx.lineTo(S0, S0); ctx.lineTo(0, S0); ctx.closePath();
+  ctx.fillStyle = '#6ab04c'; ctx.fill();
+  // sun
+  D.circle(ctx, S0 * 0.855, S0 * 0.135, S0 * 0.078, '#ffd23f', '#e8a317', S0 * 0.012);
+}
+
+/* ---------- design 1: the scene ---------- */
+function drawScene(ctx, S0) {
+  ctx.save();
+  ctx.clearRect(0, 0, S0, S0);
+  sky(ctx, S0);
+
+  // barn, small and set back behind the animals
+  ctx.save();
+  const bs = S0 / 1280 * 1.18;
+  ctx.translate(S0 * 0.5, S0 * 0.605);
+  ctx.scale(bs, bs);
+  ctx.translate(-640, -340);
+  S.barn(ctx, 640, 340, { night: 0, doorOpen: 1 });
+  ctx.restore();
+
+  // the cow leads, flanked by a pig and a chicken — big enough to read small
+  const cast = [
+    { sp: 'pig', v: 0, x: 0.135, y: 0.915, s: 0.88, dir: 1 },
+    { sp: 'chicken', v: 1, x: 0.885, y: 0.865, s: 1.0, dir: -1 },
+    { sp: 'cow', v: 0, x: 0.505, y: 0.985, s: 1.1, dir: 1 },
+  ];
+  for (const c of cast) {
+    ctx.save();
+    ctx.translate(S0 * c.x, S0 * c.y);
+    const k = S0 / 1280 * 4.35 * c.s;
+    ctx.scale(k * c.dir, k);
+    drawSpecies(ctx, c.sp, SPECIES[c.sp].variants[c.v], POSE());
+    ctx.restore();
+  }
+  ctx.restore();
+}
+
+/* ---------- design 2: close on the cow's face ---------- */
+function drawFace(ctx, S0) {
+  ctx.save();
+  ctx.clearRect(0, 0, S0, S0);
+  sky(ctx, S0);
+  // frame tightly on the head of the game's actual cow
+  ctx.save();
+  ctx.beginPath(); ctx.rect(0, 0, S0, S0); ctx.clip();
+  const k = S0 / 56;                      // frame ~56 cow-units wide: head fills it
+  ctx.translate(S0 * 0.5, S0 * 0.58);
+  ctx.scale(k, k);
+  ctx.translate(-47, 66);                 // head sits near (47, -66) in cow space
+  drawSpecies(ctx, 'cow', SPECIES.cow.variants[0], POSE());
+  ctx.restore();
+  ctx.restore();
+}
+
+/* ---------- render every size ---------- */
+const OUT = {};
+function make(kind, size, drawFn, label) {
+  const c = document.createElement('canvas');
+  c.width = c.height = size;
+  const ctx = c.getContext('2d');
+  drawFn(ctx, size);
+  OUT[label] = c.toDataURL('image/png');
+  const fig = document.createElement('figure');
+  const shown = document.createElement('canvas');
+  shown.width = shown.height = Math.min(size, 180);
+  shown.getContext('2d').drawImage(c, 0, 0, shown.width, shown.height);
+  fig.appendChild(shown);
+  fig.appendChild(document.createTextNode(label + ' (' + size + ')'));
+  document.getElementById(kind).appendChild(fig);
+}
+
+// maskable: the same scene inset so Android's circle mask can't clip the animals
+function drawMaskable(ctx, S0) {
+  const pad = S0 * 0.11;
+  ctx.fillStyle = '#7fc24a'; ctx.fillRect(0, 0, S0, S0);
+  const c = document.createElement('canvas');
+  c.width = c.height = Math.round(S0 - pad * 2);
+  drawScene(c.getContext('2d'), c.width);
+  ctx.drawImage(c, pad, pad);
+}
+
+make('scene', 512, drawScene, 'icon-512');
+make('scene', 192, drawScene, 'icon-192');
+make('scene', 180, drawScene, 'apple-touch-icon');
+make('scene', 1024, drawScene, 'icon-1024');
+make('scene', 512, drawMaskable, 'icon-maskable-512');
+make('face', 48, drawFace, 'favicon-48');
+make('face', 32, drawFace, 'favicon-32');
+make('face', 16, drawFace, 'favicon-16');
+
+window.ICONS = OUT;
+</script>
+</body>
+</html>

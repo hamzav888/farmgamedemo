@@ -77,8 +77,12 @@ const D = {
     ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2);
     ctx.strokeStyle = stroke; ctx.lineWidth = lw; ctx.lineCap = cap; ctx.stroke();
   },
+  // A soft penumbra plus a tighter core reads far more grounded than one flat
+  // ellipse, and every animal and prop draws its shadow through here.
   shadow(ctx, x, y, rx, ry, a = 0.18) {
-    D.fillEll(ctx, x, y, rx, ry, `rgba(0,0,0,${a})`);
+    D.fillEll(ctx, x, y + ry * 0.16, rx * 1.22, ry * 1.2, `rgba(38,26,12,${a * 0.4})`);
+    D.fillEll(ctx, x, y + ry * 0.06, rx * 1.02, ry * 1.0, `rgba(38,26,12,${a * 0.55})`);
+    D.fillEll(ctx, x, y, rx * 0.8, ry * 0.8, `rgba(38,26,12,${a * 0.85})`);
   },
   // Cute eye: white with pupil + highlight, or closed arc when asleep
   eye(ctx, x, y, r, opts = {}) {

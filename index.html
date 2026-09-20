@@ -8,7 +8,16 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Barn Farm">
+<meta name="description" content="A gentle first farm game for ages 1-5. Learn different animal names and sounds, and count the animals in the barn.">
 <title>Sunny Barn Farm 🐄</title>
+
+<!-- icons are generated from the game's own art by tools/make-icons.html -->
+<link rel="icon" href="icons/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="icon" href="icons/favicon-16.png" sizes="16x16" type="image/png">
+<link rel="icon" href="icons/favicon-48.png" sizes="48x48" type="image/png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -36,6 +45,14 @@
     <div id="barn-actions">
       <button id="btn-quiz" class="big-btn quiz">🧮 Quiz Me!</button>
       <button id="btn-recount" class="big-btn soft">🔄 Count Again</button>
+    </div>
+  </div>
+
+  <!-- Farm mini-game controls -->
+  <div id="farm-ui" class="hidden">
+    <div id="farm-actions">
+      <button id="btn-listen" class="big-btn listen" title="Who said that?">🎧 Listen!</button>
+      <button id="btn-eggs" class="big-btn eggs" title="Egg hunt">🥚 Egg Hunt!</button>
     </div>
   </div>
 
@@ -67,7 +84,9 @@
   <div id="splash">
     <div class="splash-box">
       <h1>🐄 Sunny Barn Farm 🐔</h1>
-      <p class="tag">A farm to explore, listen to, and count on!</p>
+      <p class="tag">A farm to explore, listen to, and count on! <span class="ages">Ages 1–5</span></p>
+      <!-- the farm's own animals, drawn with the same code as the game itself -->
+      <canvas id="splash-animals" width="760" height="150" aria-label="Cow, horse, pig, sheep, chicken, duck and cat"></canvas>
       <ul class="howto">
         <li><span>👆</span><div>Tap an animal to hear its <b>name</b> and <b>sound</b></div></li>
         <li><span>✌️</span><div>Tap it <b>twice</b> to see it do a trick</div></li>

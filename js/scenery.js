@@ -1,15 +1,34 @@
 /* ---------- Scenery drawing: barn, trees, fences, pond, buildings, sky things ---------- */
 const S = {
   /* ----- ground / grass texture (pre-rendered) ----- */
+  // A warm sun wash in the top-left and a soft dark edge all round. Pre-rendered
+  // once into a canvas, so the per-frame cost is a single drawImage.
+  makeVignette(w, h) {
+    const c = document.createElement('canvas'); c.width = w; c.height = h;
+    const x = c.getContext('2d');
+    const warm = x.createRadialGradient(w * 0.34, h * 0.08, 0, w * 0.34, h * 0.08, h * 1.15);
+    warm.addColorStop(0, 'rgba(255,240,170,0.22)');
+    warm.addColorStop(0.45, 'rgba(255,225,150,0.06)');
+    warm.addColorStop(1, 'rgba(255,215,140,0)');
+    x.fillStyle = warm; x.fillRect(0, 0, w, h);
+    const dark = x.createRadialGradient(w / 2, h / 2, h * 0.42, w / 2, h / 2, h * 0.92);
+    dark.addColorStop(0, 'rgba(24,14,40,0)');
+    dark.addColorStop(1, 'rgba(24,14,40,0.30)');
+    x.fillStyle = dark; x.fillRect(0, 0, w, h);
+    return c;
+  },
   grass(ctx, w, h, seed = 1) {
     const g = ctx.createLinearGradient(0, 0, 0, h);
     g.addColorStop(0, '#7ccc5a'); g.addColorStop(1, '#5fb548');
     ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
     let r = seed;
     const rnd = () => { r = (r * 9301 + 49297) % 233280; return r / 233280; };
-    // soft patches
+    // broad soft patches, then smaller ones, so the field never looks like flat felt
     for (let i = 0; i < 70; i++) {
       D.fillEll(ctx, rnd() * w, rnd() * h, 40 + rnd() * 90, 20 + rnd() * 40, rnd() < 0.5 ? 'rgba(255,255,200,0.07)' : 'rgba(30,110,40,0.08)');
+    }
+    for (let i = 0; i < 110; i++) {
+      D.fillEll(ctx, rnd() * w, rnd() * h, 14 + rnd() * 34, 8 + rnd() * 16, rnd() < 0.5 ? 'rgba(200,255,150,0.06)' : 'rgba(24,96,34,0.07)');
     }
     // grass tufts
     ctx.lineCap = 'round';
@@ -17,6 +36,17 @@ const S = {
       const x = rnd() * w, y = rnd() * h, s = 3 + rnd() * 5;
       ctx.strokeStyle = rnd() < 0.5 ? 'rgba(40,120,40,0.45)' : 'rgba(180,240,140,0.5)'; ctx.lineWidth = 2;
       ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x - s * 0.5, y - s); ctx.moveTo(x, y); ctx.lineTo(x + s * 0.6, y - s * 1.1); ctx.moveTo(x, y); ctx.lineTo(x, y - s * 1.3); ctx.stroke();
+    }
+    // a finer, lighter layer on top for depth
+    for (let i = 0; i < 700; i++) {
+      const x = rnd() * w, y = rnd() * h, s = 2 + rnd() * 3;
+      ctx.strokeStyle = rnd() < 0.5 ? 'rgba(150,225,120,0.38)' : 'rgba(60,140,55,0.3)'; ctx.lineWidth = 1.3;
+      ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + (rnd() - 0.5) * s, y - s * 1.2); ctx.stroke();
+    }
+    // scattered tiny daisies
+    for (let i = 0; i < 90; i++) {
+      const x = rnd() * w, y = rnd() * h;
+      D.circle(ctx, x, y, 1.6, rnd() < 0.5 ? 'rgba(255,255,255,0.5)' : 'rgba(255,240,140,0.45)');
     }
   },
   path(ctx, pts, width) {

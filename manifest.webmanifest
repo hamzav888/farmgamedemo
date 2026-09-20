@@ -1,0 +1,22 @@
+{
+  "name": "Sunny Barn Farm",
+  "short_name": "Barn Farm",
+  "description": "A gentle first farm game for ages 1-5. Learn different animal names and sounds, and count the animals in the barn.",
+  "lang": "en",
+  "start_url": "./",
+  "scope": "./",
+  "display": "fullscreen",
+  "display_override": ["fullscreen", "standalone", "minimal-ui"],
+  "orientation": "landscape",
+  "background_color": "#6ab04c",
+  "theme_color": "#6ab04c",
+  "categories": ["education", "kids", "games"],
+  "icons": [
+    { "src": "icons/favicon-48.png", "sizes": "48x48", "type": "image/png" },
+    { "src": "icons/apple-touch-icon.png", "sizes": "180x180", "type": "image/png" },
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "icons/icon-1024.png", "sizes": "1024x1024", "type": "image/png", "purpose": "any" }
+  ]
+}

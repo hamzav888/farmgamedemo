@@ -87,6 +87,16 @@ html, body {
 }
 #barn-actions { position: absolute; right: 18px; top: 86px; display: flex; gap: 10px; pointer-events: auto; }
 
+/* ---------- Farm mini-game buttons ---------- */
+#farm-ui { position: absolute; left: 0; right: 0; top: 0; bottom: 0; pointer-events: none; z-index: 3; }
+#farm-actions { position: absolute; left: 18px; bottom: 18px; display: flex; gap: 10px; pointer-events: auto; }
+.big-btn.listen { background: #a29bfe; box-shadow: 0 6px 0 #6c5ce7, 0 8px 14px rgba(0,0,0,.25); }
+.big-btn.listen:active { box-shadow: 0 2px 0 #6c5ce7; }
+.big-btn.eggs { background: #ff9f43; box-shadow: 0 6px 0 #d97b16, 0 8px 14px rgba(0,0,0,.25); }
+.big-btn.eggs:active { box-shadow: 0 2px 0 #d97b16; }
+.big-btn.active { background: #e74c3c; box-shadow: 0 6px 0 #a93226, 0 8px 14px rgba(0,0,0,.25); }
+.big-btn.active:active { box-shadow: 0 2px 0 #a93226; }
+
 /* ---------- Learning card ---------- */
 #card {
   position: absolute; left: 50%; bottom: 22px; transform: translateX(-50%);
@@ -162,7 +172,13 @@ html, body {
   box-shadow: 0 14px 0 rgba(0,0,0,.15), 0 20px 40px rgba(0,0,0,.3);
 }
 .splash-box h1 { margin: 0; font-size: 52px; color: #e17055; text-shadow: 3px 3px 0 #ffe28a; white-space: nowrap; }
-.splash-box .tag { font-size: 24px; color: #6c5ce7; margin: 6px 0 14px; }
+.splash-box .tag { font-size: 24px; color: #6c5ce7; margin: 6px 0 10px; }
+.splash-box .ages {
+  display: inline-block; vertical-align: middle; margin-left: 8px;
+  background: #48c774; color: #fff; font-size: 17px; font-weight: bold;
+  border-radius: 999px; padding: 3px 14px; white-space: nowrap;
+}
+#splash-animals { display: block; width: 100%; max-width: 760px; height: auto; margin: 0 auto 12px; }
 .howto { list-style: none; padding: 0; margin: 0 0 18px; text-align: left; font-size: 22px; color: #3d2b1f; }
 .howto li { display: flex; align-items: center; gap: 14px; margin: 8px 0; }
 .howto li span { font-size: 30px; width: 70px; flex: 0 0 70px; text-align: center; white-space: nowrap; }

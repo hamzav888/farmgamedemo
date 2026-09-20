@@ -5,7 +5,11 @@ class BarnScene {
     this.animals = []; this.zs = []; this.motes = []; this.confetti = [];
     this.counts = {}; // group -> number counted so far
     this.quiz = null; this.autoCount = null;
+    // Camera. During a quiz we glide in on just the animals being counted so a
+    // toddler isn't asked to count three pigs out of a barn full of animals.
+    this.cam = { x: 640, y: 400, s: 1, tx: 640, ty: 400, ts: 1 };
     this.snoreT = 3; this._allDone = false;
+    this.vignette = S.makeVignette(1280, 800);
     this._buildBackground();
     this._buildAnimals();
     for (let i = 0; i < 40; i++) this.motes.push({ x: U.rand(400, 900), y: U.rand(60, 700), vx: U.rand(-6, 6), vy: U.rand(-4, 4), ph: U.rand(0, 6.28) });
@@ -58,10 +62,53 @@ class BarnScene {
   }
   resetCounts() { this.counts = {}; this._allDone = false; for (const a of this.animals) { a.counted = 0; a.glow = 0; } }
 
-  enter() { this.t = 0; }
+  /* ---------- camera ---------- */
+  // Frame a group of animals: centre on them and zoom in, keeping the view
+  // inside the barn walls and leaving room for the quiz panel along the top.
+  focusGroup(list) {
+    if (!list || !list.length) return this.resetCam();
+    let x1 = 1e9, y1 = 1e9, x2 = -1e9, y2 = -1e9;
+    for (const a of list) {
+      const b = a.bounds();
+      x1 = Math.min(x1, b.x); y1 = Math.min(y1, b.y);
+      x2 = Math.max(x2, b.x + b.w); y2 = Math.max(y2, b.y + b.h);
+    }
+    const mx = (x1 + x2) / 2, my = (y1 + y2) / 2;
+    // The camera may not leave the barn, so for a group near a wall it cannot
+    // simply centre on them. Walk the zoom down until the whole group lands
+    // inside the safe rect (clear of the HUD and the quiz panel up top).
+    const SX1 = 16, SX2 = 1264, SY1 = 318, SY2 = 792;
+    let best = null;
+    for (let z = 2.0; z >= 1.001; z -= 0.04) {
+      const cx = U.clamp(mx, 640 / z, 1280 - 640 / z);
+      const cy = U.clamp(my - 90 / z, 400 / z, 800 - 400 / z);
+      const px = w => 640 + (w - cx) * z, py = w => 400 + (w - cy) * z;
+      if (px(x1) >= SX1 && px(x2) <= SX2 && py(y1) >= SY1 && py(y2) <= SY2) { best = { z, cx, cy }; break; }
+    }
+    if (!best) { const z = 1; best = { z, cx: 640, cy: 400 }; }
+    this.cam.ts = best.z; this.cam.tx = best.cx; this.cam.ty = best.cy;
+  }
+  resetCam() { this.cam.ts = 1; this.cam.tx = 640; this.cam.ty = 400; }
+  _clampCam() {
+    const s = this.cam.ts, hw = 640 / s, hh = 400 / s;
+    this.cam.tx = U.clamp(this.cam.tx, hw, 1280 - hw);
+    this.cam.ty = U.clamp(this.cam.ty, hh, 800 - hh);
+  }
+  _updateCam(dt) {
+    const c = this.cam, k = Math.min(1, dt * 3.4);
+    c.x += (c.tx - c.x) * k; c.y += (c.ty - c.y) * k; c.s += (c.ts - c.s) * k;
+  }
+  // screen (canvas) coords -> barn world coords
+  _unproject(x, y) {
+    const c = this.cam;
+    return { x: (x - 640) / c.s + c.x, y: (y - 400) / c.s + c.y };
+  }
+
+  enter() { this.t = 0; this.cam.x = this.cam.tx = 640; this.cam.y = this.cam.ty = 400; this.cam.s = this.cam.ts = 1; }
 
   update(dt) {
     this.t += dt;
+    this._updateCam(dt);
     const night = this.game.dark > 0.5;
     for (const a of this.animals) {
       a.hidden = !night;
@@ -93,6 +140,9 @@ class BarnScene {
 
   render(ctx) {
     const t = this.t, dark = this.game.dark, night = dark > 0.5;
+    const c = this.cam;
+    ctx.save();
+    ctx.translate(640, 400); ctx.scale(c.s, c.s); ctx.translate(-c.x, -c.y);
     ctx.drawImage(this.bg, 0, 0);
     S.barnWindow(ctx, 555, 70, 170, 150, dark, t);
     S.lantern(ctx, 1000, 220, night, t);
@@ -106,7 +156,17 @@ class BarnScene {
     }
     // entities (animals + front rails), y-sorted
     const ents = [];
-    for (const a of this.animals) if (!a.hidden) ents.push({ y: a.sortY, d: c => a.draw(c, t) });
+    // during a quiz, everyone who isn't being counted fades back so a small
+    // child only has to see the animals the question is actually about
+    const focus = this.quiz ? new Set(this.quiz.info.list.map(a => a.id)) : null;
+    for (const a of this.animals) if (!a.hidden) ents.push({
+      y: a.sortY, d: c => {
+        const faded = focus && !focus.has(a.id);
+        if (faded) { c.save(); c.globalAlpha = 0.28; }
+        a.draw(c, t);
+        if (faded) c.restore();
+      }
+    });
     ents.push({ y: 745, d: c => S.penRail(c, 40, 340, 745) });      // pig pen front
     ents.push({ y: 745, d: c => S.penRail(c, 385, 930, 745) });     // sheep pen front
     ents.push({ y: 500, d: c => { S.penRail(c, 40, 190, 500); S.penRail(c, 200, 350, 500); } }); // horse stall fronts
@@ -151,10 +211,13 @@ class BarnScene {
       D.text(ctx, 'Tap the 🌙 moon button up top to make it night', 640, 438, 26, '#fff8d0', { stroke: OL(), lw: 6 });
       D.text(ctx, 'and watch the animals sleep!', 640, 476, 26, '#fff8d0', { stroke: OL(), lw: 6 });
     }
+    ctx.restore();
+    // drawn outside the camera transform so the edge darkening stays put when we zoom
+    ctx.drawImage(this.vignette, 0, 0);
   }
 
   /* ---------- counting ---------- */
-  hitAnimal(x, y) { return Animal.pickHit(this.animals, x, y); }
+  hitAnimal(x, y) { const p = this._unproject(x, y); return Animal.pickHit(this.animals, p.x, p.y); }
   onSingle(x, y) {
     if (this.game.dark <= 0.5) return;
     if (this.autoCount) return;
@@ -218,6 +281,7 @@ class BarnScene {
     const info = this.groupInfo(g);
     this.quiz = { group: g, state: 'ask', answer: info.list.length, info };
     for (const a of info.list) a.glow = 1;
+    this.focusGroup(info.list);
     const q = `How many ${info.plural} are sleeping?`;
     this.game.showQuiz(`${info.emoji} ${q}`, Math.max(6, Math.min(8, info.list.length + 2)), n => this.answer(n));
     this.game.narrate(`How many ${info.plural} can you see? Count them, then tap the number!`);
@@ -228,7 +292,7 @@ class BarnScene {
     if (n === q.answer) {
       q.state = 'done'; Sfx.play('success'); this.game.addStars(1);
       this.game.markQuizAnswer(n, true);
-      const list = info.list; this.burst(640, 300);
+      const list = info.list; this.burst(this.cam.tx, this.cam.ty);
       this.game.narrate(`Yes! There are ${U.numberWord(n)} ${info.plural}! Well done! Let's count them together.`, { onend: () => {
         this.autoCount = { list, i: 0, t: 0.2, done: () => { this.game.hideQuiz(); setTimeout(() => this.startQuiz(), 800); } };
       } });
@@ -241,6 +305,6 @@ class BarnScene {
       } });
     }
   }
-  stopQuiz() { this.quiz = null; this.autoCount = null; this.game.hideQuiz(); }
+  stopQuiz() { this.quiz = null; this.autoCount = null; this.resetCam(); this.game.hideQuiz(); }
   hover(x, y) { return this.game.dark > 0.5 && !!this.hitAnimal(x, y); }
 }
