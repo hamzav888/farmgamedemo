@@ -121,10 +121,10 @@ Stars earned in a mini-game count on the farm and vice versa.
 | | Game | How it plays | Teaches |
 | --- | --- | --- | --- |
 | 🥕 | **Veggie Patch** | Drag vegetables from the crate into the shaped holes in the scarecrow's garden. Round 3 puts carrot and pumpkin — both orange — together, so the *shape* has to do the work. | Shapes, colour words |
-| 🍎 | **Feeding Time** | A hungry animal walks in and waits with a "?" over its head. Drag the right food from the tray. Wrong food → gentle head-shake and a fact. | What animals eat |
-| 🌾 | **Peek-a-boo** | Hay bales in the barn flip to reveal animals; find the pairs. Eyes peep over the bales while you think. Two pairs to start (for a one-year-old that's just peek-a-boo), six at most. | Memory, same/not the same |
-| 🐄 | **Big Pen, Little Pen** | Animals come out of the barn one at a time — a cow, then a calf. Drag each to the BIG pen or the little pen; they wander their pen once home. | Big/little, baby-animal names |
-| 🦆 | **Feed the Ducks** | "Can you feed *three* ducks?" Tap three; bread flies to each and a tray of loaves fills in. The barn teaches counting *what's there*; this teaches counting *out* a number. | Counting to a target |
+| 🚜 | **Tractor Ride** | Tap or hold anywhere and the tractor drives there, wheels turning, trailer bouncing behind. Scoop up the hay bales, splash through puddles, send the chickens flapping, honk at the dog, then deliver a full trailer to the barn. | Cause and effect, steering, counting the load |
+| 🐷 | **Runaway Piglets** | The piglets have escaped and they zig-zag across the field. Tap to catch one; it squeals and floats back to the sty. They get faster each round. Tap the dog and his bark freezes them for a moment — the help a two-year-old needs. | Tracking a moving target, reflexes |
+| 🔍 | **Hide & Seek** | "Where's the cow?" She's behind the tree, or in the hay with her ears showing, or in the pond with her eyes above the water. Tap the peeking bit and she pops out. Stuck? After a few seconds she *moos* — find her by listening. | Observation, listening, animal names |
+| ⭐ | **Star Animals** | Night sky dot-to-dot. Join the stars 1 → 2 → 3… (the next one pulses) and the lines light up; finish and the real animal fades into the constellation and says hello. Five stars to start, seven later. | Number order 1–7, animal names |
 | 🎵 | **Farm Band** | Five animals on coloured drums; every tap is a pentatonic banjo note, so anything bashed out sounds like a tune. Tap the rooster to copy his tune (2 → 5 notes); finish the whole thing for a concert. | Cause/effect, sequence memory |
 | 🐷 | **Muddy Pig Bath** | Rub anywhere and the sponge wipes mud off a huge pig, with bubbles and giggles. Clean → a shine, a jump for joy, then he rolls in the mud again. | Motor control, clean/dirty |
 
@@ -144,7 +144,7 @@ js/mini.js             MiniScene — hosts the very same classes inside the main
 
 Nothing is duplicated between the farm and the mini-games: they share `drawSpecies`, `Animal`,
 `S.*`, `Sfx`, `Voice` and the HUD. A game played on the farm and on the hub page is the same code.
-Test flags: `?start&mini=veggie` on the farm; `?game=veggie` on the hub (ids: `veggie feed peek pens ducks band bath`).
+Test flags: `?start&mini=veggie` on the farm; `?game=veggie` on the hub (ids: `veggie tractor piglets hide stars band bath`).
 
 ## 🔊 About the sound
 

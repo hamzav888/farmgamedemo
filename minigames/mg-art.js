@@ -293,3 +293,89 @@ const MiniBG = {
     return c;
   }
 };
+
+/* ================= art for the second batch of games ================= */
+Object.assign(MA, {
+  // The farm's tractor, facing right, feet at (0,0) — with wheels that turn
+  // (o.wheel = distance travelled / 24) and a little bounce while moving.
+  tractor(ctx, o = {}) {
+    const OLc = D.OUTLINE, w = o.wheel || 0;
+    ctx.save(); ctx.translate(0, -(o.bounce || 0));
+    D.fillEll(ctx, 0, 2, 60, 10, 'rgba(0,0,0,0.18)');
+    const wheel = (x, y, r) => {
+      D.circle(ctx, x, y, r, '#2d3436', OLc);
+      ctx.save(); ctx.translate(x, y); ctx.rotate(w * 24 / r);
+      for (let i = 0; i < 4; i++) { ctx.rotate(Math.PI / 4); D.line(ctx, -r * 0.6, 0, r * 0.6, 0, '#636e72', r * 0.2); }
+      ctx.restore();
+      D.circle(ctx, x, y, r * 0.28, '#b2bec3', OLc, 2);
+    };
+    wheel(-28, -22, 24); wheel(32, -14, 14);
+    D.fillRR(ctx, -12, -50, 60, 32, 6, '#e0413a', OLc);
+    D.fillRR(ctx, -12, -84, 30, 40, 6, '#e0413a', OLc);
+    D.fillRR(ctx, -8, -78, 20, 20, 3, '#9ad9ff', OLc, 2.5);
+    D.fillRR(ctx, 20, -60, 6, 26, 3, '#636e72', OLc, 2);
+    D.circle(ctx, 42, -40, 6, o.lights ? '#fff6a0' : '#ffe066', OLc, 2);
+    D.fillRR(ctx, -40, -46, 30, 10, 3, '#2d3436', OLc, 2);
+    D.circle(ctx, -22, -56, 7, null, '#2d3436', 3);
+    ctx.restore();
+  },
+  // wooden hay trailer, tow bar to the right; n bales stacked on it
+  trailer(ctx, n = 0, w = 0) {
+    const OLc = D.OUTLINE;
+    D.fillEll(ctx, 0, 2, 52, 9, 'rgba(0,0,0,0.18)');
+    D.line(ctx, 40, -22, 74, -28, OLc, 8); D.line(ctx, 40, -22, 74, -28, '#636e72', 4);
+    D.fillRR(ctx, -48, -42, 96, 26, 5, '#a5693b', OLc);
+    D.fillRR(ctx, -44, -38, 88, 18, 3, '#c9895a', null);
+    ctx.strokeStyle = 'rgba(0,0,0,0.12)'; ctx.lineWidth = 2;
+    for (let x = -32; x <= 32; x += 16) { ctx.beginPath(); ctx.moveTo(x, -38); ctx.lineTo(x, -20); ctx.stroke(); }
+    for (let i = 0; i < n; i++) { const col = i % 3, row = Math.floor(i / 3); S.hayBale(ctx, -28 + col * 28 + (row % 2) * 6, -42 - row * 21, 0.62); }
+    const wheel = (x, y, r) => { D.circle(ctx, x, y, r, '#2d3436', OLc); ctx.save(); ctx.translate(x, y); ctx.rotate(w * 24 / r); for (let i = 0; i < 3; i++) { ctx.rotate(Math.PI / 3); D.line(ctx, -r * 0.6, 0, r * 0.6, 0, '#636e72', r * 0.22); } ctx.restore(); D.circle(ctx, x, y, r * 0.3, '#b2bec3', OLc, 2); };
+    wheel(-26, -14, 13); wheel(26, -14, 13);
+  },
+  puddle(ctx, rx, ry, t = 0) {
+    D.fillEll(ctx, 0, 0, rx, ry, '#5fb8e8', '#3a86b8', 3);
+    D.fillEll(ctx, -rx * 0.3, -ry * 0.25, rx * 0.35, ry * 0.3, 'rgba(255,255,255,0.35)');
+    for (let i = 0; i < 2; i++) { const x = -rx * 0.4 + i * rx * 0.6 + Math.sin(t * 1.4 + i) * 6; D.line(ctx, x - 10, i * 6, x + 10, i * 6, 'rgba(255,255,255,0.6)', 2.5); }
+  },
+  // a fence gate, hinged at its left post; open = 0..1 swings it out toward the viewer
+  gate(ctx, w = 70, open = 0) {
+    const OLc = D.OUTLINE, k = U.easeInOut(open);
+    ctx.save();
+    D.fillRR(ctx, -6, -46, 12, 50, 3, '#a5693b', OLc, 2.5);
+    ctx.translate(0, -30); ctx.scale(1 - k * 0.75, 1); ctx.rotate(k * 0.35);
+    [0, 12].forEach(dy => { D.line(ctx, 0, dy, w, dy, OLc, 9); D.line(ctx, 0, dy, w, dy, '#c9895a', 5); });
+    D.line(ctx, 4, -2, w - 4, 14, OLc, 7); D.line(ctx, 4, -2, w - 4, 14, '#c9895a', 3.5);
+    D.fillRR(ctx, w - 5, -8, 10, 30, 3, '#a5693b', OLc, 2.5);
+    ctx.restore();
+  },
+  // numbered star for the dot-to-dot: o.state = 'todo' | 'next' | 'done'
+  numStar(ctx, n, o = {}) {
+    const OLc = D.OUTLINE, t = o.t || 0, st = o.state || 'todo';
+    const pulse = st === 'next' ? 1 + 0.12 * Math.sin(t * 5) : 1, r = 30 * pulse;
+    ctx.save();
+    if (st !== 'todo') { ctx.save(); ctx.globalCompositeOperation = 'lighter'; const g = ctx.createRadialGradient(0, 0, 0, 0, 0, r * 2.2); g.addColorStop(0, st === 'done' ? 'rgba(255,220,120,0.55)' : 'rgba(255,255,200,0.45)'); g.addColorStop(1, 'rgba(255,220,120,0)'); ctx.fillStyle = g; ctx.fillRect(-r * 2.2, -r * 2.2, r * 4.4, r * 4.4); ctx.restore(); }
+    ctx.rotate(o.wiggle ? Math.sin(t * 30) * 0.2 : 0);
+    ctx.beginPath(); for (let i = 0; i < 10; i++) { const rr = i % 2 ? r * 0.5 : r, an = i / 10 * Math.PI * 2 - Math.PI / 2; ctx.lineTo(Math.cos(an) * rr, Math.sin(an) * rr); } ctx.closePath();
+    ctx.fillStyle = st === 'done' ? '#ffd23f' : st === 'next' ? '#fff6c2' : '#dfe6f3'; ctx.fill(); ctx.strokeStyle = OLc; ctx.lineWidth = 3; ctx.lineJoin = 'round'; ctx.stroke();
+    D.text(ctx, String(n), 0, 3, 26, '#7a3e12');
+    ctx.restore();
+  },
+  // pre-rendered night over the farm: sky, scattered stars, hills, fence line
+  nightSky(w = 1280, h = 800) {
+    const c = document.createElement('canvas'); c.width = w; c.height = h; const x = c.getContext('2d');
+    const g = x.createLinearGradient(0, 0, 0, h); g.addColorStop(0, '#0a1230'); g.addColorStop(0.65, '#1d2f66'); g.addColorStop(1, '#2d4a86');
+    x.fillStyle = g; x.fillRect(0, 0, w, h);
+    let r = 5; const rnd = () => { r = (r * 9301 + 49297) % 233280; return r / 233280; };
+    for (let i = 0; i < 160; i++) { const sx = rnd() * w, sy = rnd() * h * 0.75, sr = 0.8 + rnd() * 1.8; D.circle(x, sx, sy, sr, `rgba(255,255,255,${0.35 + rnd() * 0.5})`); }
+    // hills + farm silhouette
+    x.fillStyle = '#132047';
+    x.beginPath(); x.moveTo(0, h * 0.86); x.quadraticCurveTo(w * 0.25, h * 0.74, w * 0.5, h * 0.84); x.quadraticCurveTo(w * 0.78, h * 0.72, w, h * 0.82); x.lineTo(w, h); x.lineTo(0, h); x.closePath(); x.fill();
+    x.fillStyle = '#0c1736';
+    x.beginPath(); x.moveTo(0, h * 0.93); x.quadraticCurveTo(w * 0.3, h * 0.86, w * 0.6, h * 0.92); x.quadraticCurveTo(w * 0.85, h * 0.88, w, h * 0.95); x.lineTo(w, h); x.lineTo(0, h); x.closePath(); x.fill();
+    // a little barn and fence on the hill
+    D.poly(x, [[w * 0.12, h * 0.86], [w * 0.12, h * 0.78], [w * 0.155, h * 0.74], [w * 0.19, h * 0.78], [w * 0.19, h * 0.86]], '#0c1736');
+    for (let fx = w * 0.3; fx < w * 0.95; fx += 46) { D.fillRR(x, fx, h * 0.84, 7, 26, 2, '#0c1736'); }
+    D.fillRR(x, w * 0.3, h * 0.855, w * 0.65, 5, 2, '#0c1736');
+    return c;
+  }
+});

@@ -20,7 +20,7 @@ class Game {
     this.farm = new FarmScene(this);
     this.barn = new BarnScene(this);
     this.mini = new MiniScene(this);
-    this.MINI_GAMES = [VeggiePatch, FeedingTime, PeekABoo, BigLittle, FeedDucks, FarmBand, PigBath];
+    this.MINI_GAMES = [VeggiePatch, TractorRide, RunawayPiglets, HideSeek, StarAnimals, FarmBand, PigBath];
     this._bindUI();
     this._bindInput();
     this._applyUrlFlags();
