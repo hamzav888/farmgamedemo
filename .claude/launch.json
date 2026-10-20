@@ -3,6 +3,10 @@
   "configurations": [
     {
       "name": "farm-game",
+      "url": "http://localhost:8080"
+    },
+    {
+      "name": "farm-game-start",
       "runtimeExecutable": "python3",
       "runtimeArgs": ["serve.py", "8080", "--no-open"],
       "port": 8080

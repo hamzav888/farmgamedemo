@@ -148,20 +148,62 @@ Test flags: `?start&mini=veggie` on the farm; `?game=veggie` on the hub (ids: `v
 
 ## 🔊 About the sound
 
-There are no audio files — every sound is synthesised at runtime.
+There are no sound-effect or music files — every effect and both songs are synthesised at
+runtime. The narrator is the one thing that *can* be recorded (see below).
 
-* **Animal calls** use *formant synthesis*: a buzzing "voice box" oscillator pushed
-  through parallel band-pass filters that imitate an animal's throat and mouth. That is
-  what makes the cow's "mmMOO-oo" and the cat's "me-ow" glide like real vowels instead of
-  sounding like beeps. Every call is pitch-jittered slightly so it is never identical twice.
-* **Loudness is measured, not guessed.** `Sfx._trim` holds a per-animal gain measured as
-  max RMS over a 300 ms window, so a chicken and a cow feel equally loud. If you retune a
-  call, re-measure it rather than eyeballing the `vol:` number.
-* **Banjo** (daytime music) is a *Karplus–Strong* plucked string — a noise burst fed
-  through a damped delay line — playing bluegrass forward rolls over G–C–D, with an
-  upright bass, a brushed backbeat and a whistle melody.
-* **Reverb** is a synthesised impulse response. Step inside the barn and the room gets
-  boomier while the outside world goes muffled.
+### Music
+
+**Day — "Sunny Barn Hoedown"** is an arrangement, not a loop: intro (banjo + bass) → verse on
+whistle → verse again with a fiddle harmony in thirds → chorus (kick, brushed snare, spoons,
+mandolin shimmer) → the tune on banjo over fingerpicked guitar → a hushed bridge (guitar +
+whistle, no drums, 10 dB down) → chorus again, the biggest moment → tag. About two minutes
+before it repeats, and the lead swaps between whistle and fiddle from one day to the next.
+
+**Night — "Barn Lullaby"**: music box → a warm pad joins → a second tune with a glockenspiel
+echo → a soft fiddle in thirds. Longer than a night, so it never repeats inside one.
+
+Every instrument is built in `js/audio.js`: banjo, guitar, mandolin and upright bass are
+Karplus–Strong strings; whistle and fiddle are filtered oscillators with vibrato and a breath or
+bow noise on the attack; drums are shaped noise and sine thumps. Each section has a `mix` level,
+which is where the dynamics come from.
+
+### Effects
+
+* **Animal calls** use *formant synthesis*: a buzzing "voice box" pushed through parallel
+  band-pass filters that imitate a throat and mouth, so the cow's "mmMOO-oo" and the cat's
+  "me-ow" glide like vowels. Every call is pitch-jittered so it is never identical twice.
+* **Stereo placement.** `Sfx.play(name, vol, x)` pans by where the animal stands, so a cow on
+  the left of the farm moos from the left; birds sing from different spots along the hedge.
+* **Loudness is measured, not guessed.** `Sfx._trim` holds a per-animal gain measured as max RMS
+  over a 300 ms window, so a chicken and a cow feel equally loud. Retune by measuring.
+* **Room.** A synthesised impulse response; inside the barn the room gets boomier and the outside
+  world muffles. A gentle limiter keeps a pile-up of sounds from ever hurting little ears.
+* **Ambience.** Three kinds of songbird, wind that gusts with rustling leaves, the odd bee,
+  crickets at night.
+
+### The narrator's voice
+
+The narrator is the one place a game cannot synthesise its way to studio quality — it needs a
+real recorded (or neural) voice. So the game supports **pre-recorded clips**: `voice/manifest.json`
+maps every line the game can say (506 of them) to a file in `voice/`, and they play through the
+game's own audio graph — ducked under the music, a touch of presence, no robotic edges. Any line
+without a clip falls back to the browser's speech synthesis, whose voices are ranked by quality
+markers (*Natural, Neural, Enhanced, Premium*).
+
+The shipped clips were rendered from this Mac's built-in voice. To upgrade to a professional
+neural voice, run the tool with an API key — **no code changes**, the manifest marks them as
+`neural` and the game prefers them everywhere:
+
+```bash
+OPENAI_API_KEY=sk-... python3 tools/make-voice.py --engine openai --voice nova
+```
+
+```bash
+ELEVENLABS_API_KEY=... python3 tools/make-voice.py --engine elevenlabs --voice <voice_id>
+```
+
+(`--dry-run` lists the lines. The line list in the tool mirrors every `narrate()` in the game;
+when you add a line in the game, add it there too and re-run — only missing clips are rendered.)
 
 ## 📁 Files
 
@@ -172,8 +214,9 @@ sw.js                    offline cache
 css/style.css            kid-friendly UI styles
 icons/                   app icons + favicons (generated — see tools/)
 js/util.js               helpers + canvas drawing primitives
-js/audio.js              Web Audio synth: formant animal calls, banjo + lullaby music, reverb, ambience
-js/voice.js              narrator (Web Speech API, prefers a female English voice)
+js/audio.js              Web Audio synth: formant animal calls, the two songs + instruments, stereo, reverb, ambience
+js/voice.js              narrator: recorded clips through Web Audio, speech synthesis as fallback
+voice/                   narrator clips + manifest.json (generated — see tools/make-voice.py)
 js/animals.js            animal definitions, procedural drawing, wandering AI, tricks
 js/scenery.js            barn, trees, fences, pond, coop, tractor, windmill, sun/moon, barn interior
 js/farm.js               outdoor scene (day/night, night creatures, particles, mini-games)
@@ -181,6 +224,7 @@ js/barn.js               barn interior scene (sleeping animals, counting, quiz, 
 js/main.js               game loop, input, day/night cycle, HUD, cards, narration
 serve.py                 tiny local web server (python3 serve.py)
 tools/make-icons.html    regenerates icons/ from the game's own art
+tools/make-voice.py      renders every narrator line to voice/ (local voice, or OpenAI / ElevenLabs with a key)
 ```
 
 ### Regenerating the icons

@@ -44,7 +44,7 @@ class FarmBand {
     const f = 440 * Math.pow(2, (s.midi - 69) / 12);
     Sfx.pluck({ f0: f, dur: 1.1, vol: 0.55, bright: true, body: 420 });
     Sfx.pluck({ f0: f * 2, dur: 0.6, vol: 0.12, bright: true });
-    s.a.talk(0.5); if (!fromRooster) Sfx.play(s.a.cfg.sound, 0.25);
+    s.a.talk(0.5); if (!fromRooster) Sfx.play(s.a.cfg.sound, 0.25, s.x);
     this.notes.push({ x: s.x + U.rand(-30, 30), y: s.y - 150, t: 0, color: s.color });
   }
   _slotAt(x, y) { return this.slots.find(s => s.a.hit(x, y) || (Math.abs(x - s.x) < 80 && Math.abs(y - (s.y + 20)) < 60)); }

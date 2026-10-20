@@ -2,7 +2,7 @@
    The game has no network dependencies at all, so caching the shell is enough
    to make it work on a plane, in a car, or on a tablet with the wifi off.
    Bump CACHE when you ship a change, or the old files keep being served. */
-const CACHE = 'sunny-barn-farm-v6';
+const CACHE = 'sunny-barn-farm-v7';
 
 const SHELL = [
   './',
@@ -31,6 +31,7 @@ const SHELL = [
   'minigames/games/farm-band.js',
   'minigames/games/pig-bath.js',
   'manifest.webmanifest',
+  'voice/manifest.json',
   'icons/favicon-16.png',
   'icons/favicon-32.png',
   'icons/favicon-48.png',

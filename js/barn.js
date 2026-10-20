@@ -234,7 +234,7 @@ class BarnScene {
     if (!a) return;
     // wake up briefly and do the sound
     a.sleeping = false; a.wakeT = 2.6; a.happy = true; a.talk(1);
-    Sfx.play(a.cfg.sound, 0.8); a.say(a.cfg.says, 1.6);
+    Sfx.play(a.cfg.sound, 0.8, a.x); a.say(a.cfg.says, 1.6);
     this.game.showCard(a);
     this.game.narrate(`Shhh! The ${a.cfg.name.toLowerCase()} says ${a.cfg.says.replace('!', '')}... and goes back to sleep.`);
   }
@@ -247,7 +247,7 @@ class BarnScene {
     }
     const n = (this.counts[group] || 0) + 1;
     this.counts[group] = n; a.counted = n; a.glow = 1;
-    Sfx.play('count', 1); a.talk(0.5);
+    Sfx.play('count', 1, a.x); a.talk(0.5);
     const total = info.list.length;
     const word = U.numberWord(n);
     if (n >= total) {

@@ -77,13 +77,13 @@ class RunawayPiglets {
     const p = this.h.hitAnimal(this.piglets.filter(p => p.mode === 'run'), x, y);
     if (!p) { this.h.crumbs(x, y, 6); Sfx.play('splash', 0.15); return; }
     this.idleT = 0; p.mode = 'caught'; this.caught++;
-    Sfx.play('pig', 0.8); p.say('Wee!', 1.2); p.moving = false; p.happy = true;
+    Sfx.play('pig', 0.8, p.x); p.say('Wee!', 1.2); p.moving = false; p.happy = true;
     this.h.sparkle(p.x, p.y - 30, 12);
     const w = U.numberWord(this.caught), W = w[0].toUpperCase() + w.slice(1);
     const home = { x: U.rand(100, 290), y: U.rand(560, 730) };
     this.h.tween(p, { y: p.y - 50, scale: p.scale * 1.25 }, 0.25, { ease: U.easeOut, onDone: () => this.h.tween(p, { x: home.x, y: home.y, scale: 0.85 * (SPECIES.pig.scale || 1) }, 0.8, { onDone: () => {
       p.mode = 'home'; p.happy = false; p.zone = { x1: 90, y1: 540, x2: 300, y2: 735 }; p.state = 'idle'; p.stateT = 1; p.speedMul = 0.5;
-      this.mama.talk(0.6); Sfx.play('pig', 0.4); Sfx.play('pop', 0.5);
+      this.mama.talk(0.6); Sfx.play('pig', 0.4, this.mama.x); Sfx.play('pop', 0.5, this.mama.x);
     } }) });
     if (this.caught >= this.need) {
       this.busy = true; this.round++;

@@ -90,7 +90,7 @@ class TractorRide {
     for (const a of this.chickens) {
       a.update(dt, {});
       if (!a.action && tr.speed > 30 && Math.hypot(a.x - tr.x, a.y - tr.y) < 120) {
-        a.doTrick(); a.say('Bok!', 1.2); Sfx.play('chicken', 0.5);
+        a.doTrick(); a.say('Bok!', 1.2); Sfx.play('chicken', 0.5, a.x);
         const away = Math.atan2(a.y - tr.y, a.x - tr.x); const z = a.zone;
         a.target = { x: U.clamp(a.x + Math.cos(away) * 140, z.x1, z.x2), y: U.clamp(a.y + Math.sin(away) * 140, z.y1, z.y2) };
         a.actionAfter = () => { a.state = 'walk'; a.speedMul = 2.2; };
@@ -99,14 +99,14 @@ class TractorRide {
     }
     for (const a of this.sheep) {
       a.update(dt, {});
-      if (!a.action && tr.speed > 30 && Math.hypot(a.x - tr.x, a.y - tr.y) < 110) { a.doTrick(); a.say('Baa!', 1.2); Sfx.play('sheep', 0.4); const away = Math.atan2(a.y - tr.y, a.x - tr.x), z = a.zone; a.target = { x: U.clamp(a.x + Math.cos(away) * 120, z.x1, z.x2), y: U.clamp(a.y + Math.sin(away) * 120, z.y1, z.y2) }; a.actionAfter = () => { a.state = 'walk'; a.speedMul = 2; }; }
+      if (!a.action && tr.speed > 30 && Math.hypot(a.x - tr.x, a.y - tr.y) < 110) { a.doTrick(); a.say('Baa!', 1.2); Sfx.play('sheep', 0.4, a.x); const away = Math.atan2(a.y - tr.y, a.x - tr.x), z = a.zone; a.target = { x: U.clamp(a.x + Math.cos(away) * 120, z.x1, z.x2), y: U.clamp(a.y + Math.sin(away) * 120, z.y1, z.y2) }; a.actionAfter = () => { a.state = 'walk'; a.speedMul = 2; }; }
     }
     // the dog chases the tractor
     const dg = this.dog; dg.update(dt, {});
     const gx = tr.x - tr.dir * 110, gy = tr.y + 40, gd = Math.hypot(gx - dg.x, gy - dg.y);
     if (gd > 30 && tr.speed > 20) { dg.moving = true; dg.phase += dt * 16; dg.x += (gx - dg.x) / gd * Math.min(gd, 200 * dt); dg.y += (gy - dg.y) / gd * Math.min(gd, 200 * dt); dg.dir = gx > dg.x ? 1 : -1; dg.happy = true; }
     else { dg.moving = false; }
-    this.barkT -= dt; if (tr.speed > 60 && this.barkT <= 0) { this.barkT = U.rand(3, 6); dg.talk(0.6); Sfx.play('dog', 0.35); dg.say('Woof!', 1.2); }
+    this.barkT -= dt; if (tr.speed > 60 && this.barkT <= 0) { this.barkT = U.rand(3, 6); dg.talk(0.6); Sfx.play('dog', 0.35, dg.x); dg.say('Woof!', 1.2); }
     // ----- delivery -----
     const D0 = TractorRide.DOOR;
     if (this.full && !this.busy && Math.hypot(tr.x - D0.x, tr.y - D0.y) < 95) this._deliver();
@@ -128,7 +128,7 @@ class TractorRide {
 
   onDown(x, y) {
     if (this.busy) return;
-    if (Math.hypot(x - this.tr.x, y - (this.tr.y - 45)) < 70) { Sfx.play('honk'); this.tr.honk = 0.6; this.h.sparkle(this.tr.x, this.tr.y - 70, 6); this.dog.talk(0.5); Sfx.play('dog', 0.3); return; }
+    if (Math.hypot(x - this.tr.x, y - (this.tr.y - 45)) < 70) { Sfx.play('honk', 1, this.tr.x); this.tr.honk = 0.6; this.h.sparkle(this.tr.x, this.tr.y - 70, 6); this.dog.talk(0.5); Sfx.play('dog', 0.3); return; }
     this.holding = true; this.target = { x, y }; this.idleT = 0;
   }
   onMove(x, y, down) { if (down && this.holding && !this.busy) this.target = { x, y }; }

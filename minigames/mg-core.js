@@ -95,7 +95,7 @@ const MiniFX = {
   // a parked animal: no wander zone, so it just stands, blinks and reacts
   makeAnimal(species, x, y, o = {}) { const a = new Animal(species, x, y, { zone: null, ...o }); a.sortY = y; return a; },
   // say + sound + mouth, the way the farm introduces an animal
-  animalSpeak(a, vol = 1) { a.talk(1); Sfx.play(a.cfg.sound, vol); a.say(a.cfg.says, 1.8); },
+  animalSpeak(a, vol = 1) { a.talk(1); Sfx.play(a.cfg.sound, vol, a.x); a.say(a.cfg.says, 1.8); },
   hitAnimal(list, x, y) { return Animal.pickHit(list, x, y); },
 
   /* ----- pointer routing: hosts feed raw events in, games get tap + drag ----- */
@@ -209,7 +209,7 @@ class MiniHost {
       const el = document.documentElement;
       if (el.requestFullscreen) { try { const p = el.requestFullscreen(); if (p && p.catch) p.catch(() => { }); } catch (e) { } }
     }
-    Sfx.init(); Voice.init();
+    Sfx.init(); Voice.init({ base: '../' });   // the clips live beside the farm, one folder up
     Sfx.startAmbient('day'); Sfx.startMusic('day');
   }
   narrate(text, opts = {}) {

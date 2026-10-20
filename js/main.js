@@ -306,7 +306,7 @@ class Game {
   introduce(a) {
     // single tap: name + sound
     const cfg = a.cfg;
-    a.talk(1); Sfx.play(cfg.sound, 1); a.say(cfg.says, 2);
+    a.talk(1); Sfx.play(cfg.sound, 1, a.x); a.say(cfg.says, 2);
     this.showCard(a);
     const article = /^[aeiou]/i.test(cfg.name) ? 'an' : 'a';
     const sayText = cfg.says.replace(/!/g, '');
@@ -318,11 +318,11 @@ class Game {
     a.doTrick();
     a.say(cfg.trickText, 1.8);
     const delay = ['munch', 'splash'].includes(cfg.trickSound) ? 500 : 0;
-    setTimeout(() => Sfx.play(cfg.trickSound, 1), delay);
-    if (cfg.trick === 'flap') setTimeout(() => Sfx.play('egg'), 900);
-    if (cfg.trick === 'rear') Sfx.play('horse', 0.8);
-    if (cfg.trick === 'jump') Sfx.play('cow', 0.7);
-    if (cfg.trick === 'roll') Sfx.play('pig', 0.8);
+    setTimeout(() => Sfx.play(cfg.trickSound, 1, a.x), delay);
+    if (cfg.trick === 'flap') setTimeout(() => Sfx.play('egg', 1, a.x), 900);
+    if (cfg.trick === 'rear') Sfx.play('horse', 0.8, a.x);
+    if (cfg.trick === 'jump') Sfx.play('cow', 0.7, a.x);
+    if (cfg.trick === 'roll') Sfx.play('pig', 0.8, a.x);
     this.showCard(a, true);
   }
   showCard(a, trick = false) {

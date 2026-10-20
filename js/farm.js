@@ -205,7 +205,7 @@ class FarmScene {
         a.hidden = false; a.x = FARM.door.x + U.rand(-10, 10); a.y = FARM.door.y + 4; a.sleeping = false;
         a.state = 'walk'; a.target = a._randomPoint(); a.speedMul = 1;
         this.emergeT = this.emergeRush ? 0.055 : U.rand(0.35, 0.7);
-        if (a.species === 'rooster') { a.doTrick(); Sfx.play('rooster', 0.9); a.say(a.cfg.says, 2); } // good-morning crow
+        if (a.species === 'rooster') { a.doTrick(); Sfx.play('rooster', 0.9, a.x); a.say(a.cfg.says, 2); } // good-morning crow
       }
     }
     for (const a of this.animals) {
@@ -241,11 +241,11 @@ class FarmScene {
     if (this.callT <= 0) {
       this.callT = U.rand(8, 15);
       const vis = this.animals.filter(a => !a.hidden && !a.action);
-      if (vis.length && !g.speaking) { const a = U.pick(vis); a.talk(0.9); Sfx.play(a.cfg.sound, 0.4); a.say(a.cfg.says, 1.4); }
+      if (vis.length && !g.speaking) { const a = U.pick(vis); a.talk(0.9); Sfx.play(a.cfg.sound, 0.4, a.x); a.say(a.cfg.says, 1.4); }
     }
     if (showNight) {
-      this.owlT -= dt; if (this.owlT <= 0) { this.owlT = U.rand(10, 18); this.owl.talk(1.2); Sfx.play('owl', 0.5); this.owl.say('Hoo hoo!', 1.6); }
-      this.frogT -= dt; if (this.frogT <= 0) { this.frogT = U.rand(5, 10); const f = U.pick(this.frogs); f.talk(0.5); Sfx.play('frog', 0.35); }
+      this.owlT -= dt; if (this.owlT <= 0) { this.owlT = U.rand(10, 18); this.owl.talk(1.2); Sfx.play('owl', 0.5, this.owl.x); this.owl.say('Hoo hoo!', 1.6); }
+      this.frogT -= dt; if (this.frogT <= 0) { this.frogT = U.rand(5, 10); const f = U.pick(this.frogs); f.talk(0.5); Sfx.play('frog', 0.35, f.x); }
       // the barn full of sleeping animals, heard from outside
       this.snoreT -= dt; if (this.snoreT <= 0) { this.snoreT = U.rand(6, 11); Sfx.play('snore', 0.4); }
     }
@@ -438,7 +438,7 @@ class FarmScene {
   _listenPlay() {
     const L = this.listen; if (!L || !L.target) return;
     Sfx.play('listen', 0.7);
-    setTimeout(() => { if (this.listen && this.listen.target) { this.listen.target.talk(1); Sfx.play(this.listen.target.cfg.sound, 1); } }, 480);
+    setTimeout(() => { if (this.listen && this.listen.target) { this.listen.target.talk(1); Sfx.play(this.listen.target.cfg.sound, 1, this.listen.target.x); } }, 480);
   }
   _listenAnswer(a) {
     const L = this.listen; if (!L || L.state !== 'ask' || !L.target) return true;
@@ -530,9 +530,9 @@ class FarmScene {
   }
   _propTap(x, y) {
     const p = this._propHit(x, y);
-    if (p === 'tractor') { Sfx.play('honk'); this.tractorBounce = 0.7; this.sparkle(x, y, 6); }
-    else if (p === 'scarecrow') { Sfx.play('caw'); this.crowHop = 0.9; this.sparkle(x, y, 6); }
-    else if (p === 'windmill') { Sfx.play('whoosh', 0.7); this.windBoost = 4; this.sparkle(x, y, 6); }
+    if (p === 'tractor') { Sfx.play('honk', 1, 905); this.tractorBounce = 0.7; this.sparkle(x, y, 6); }
+    else if (p === 'scarecrow') { Sfx.play('caw', 1, 955); this.crowHop = 0.9; this.sparkle(x, y, 6); }
+    else if (p === 'windmill') { Sfx.play('whoosh', 0.7, 315); this.windBoost = 4; this.sparkle(x, y, 6); }
     return !!p;
   }
   onSingle(x, y) {
