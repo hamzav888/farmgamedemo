@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#6ab04c">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="description" content="Seven little learning games from Sunny Barn Farm for ages 1-5.">
+<title>Sunny Barn Farm — Mini-Games 🐄</title>
+<link rel="icon" href="../icons/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
+<link rel="stylesheet" href="../css/style.css">
+<link rel="stylesheet" href="mg.css">
+</head>
+<body>
+<div id="stage">
+  <canvas id="game" width="1280" height="800"></canvas>
+
+  <!-- HUD (same ids as the main game so the farm's styles apply) -->
+  <div id="hud" class="hidden">
+    <div id="hud-left">
+      <button id="btn-home" class="hud-btn" title="All games">🏡</button>
+      <div id="title-pill">🥕 Veggie Patch</div>
+      <div id="star-pill">⭐ 0</div>
+    </div>
+    <div id="hud-buttons">
+      <button id="btn-again" class="hud-btn" title="Play again">🔄</button>
+      <button id="btn-sound" class="hud-btn" title="Sounds on/off">🔊</button>
+      <button id="btn-music" class="hud-btn" title="Music on/off">🎵</button>
+    </div>
+  </div>
+
+  <!-- Learning card -->
+  <div id="card" class="hidden">
+    <div id="card-emoji">🥕</div>
+    <div id="card-text">
+      <div id="card-name">CARROT</div>
+      <div id="card-sub">An <b>orange</b> carrot</div>
+    </div>
+  </div>
+
+  <!-- Narrator subtitle -->
+  <div id="subtitle" class="hidden"></div>
+
+  <!-- Fader -->
+  <div id="fader"></div>
+
+  <!-- Game picker -->
+  <div id="hub">
+    <div class="hub-box">
+      <h1>🐄 Farm Mini-Games 🐔</h1>
+      <p class="tag">Seven little games from Sunny Barn Farm
+        <span class="ages">Ages 1–5</span>
+        <span id="star-pill-hub" class="hub-stars">⭐ 0</span>
+      </p>
+      <div id="hub-grid"></div>
+      <button id="btn-farm" class="big-btn soft">🏡 Back to the farm</button>
+      <p class="tiny">Turn your sound on! 🔊</p>
+    </div>
+  </div>
+</div>
+
+<!-- Portrait phones: ask for landscape -->
+<div id="rotate">
+  <div class="phone">📱</div>
+  <p>Turn your phone sideways to play!</p>
+</div>
+
+<!-- the farm's own engine: art, audio, narrator, animals, scenery -->
+<script src="../js/util.js"></script>
+<script src="../js/audio.js"></script>
+<script src="../js/voice.js"></script>
+<script src="../js/animals.js"></script>
+<script src="../js/scenery.js"></script>
+<!-- mini-game framework -->
+<script src="mg-art.js"></script>
+<script src="mg-hub.js"></script>
+<script src="mg-core.js"></script>
+<!-- the games -->
+<script src="games/veggie-patch.js"></script>
+<script src="games/feeding-time.js"></script>
+<script src="games/peekaboo.js"></script>
+<script src="games/big-little.js"></script>
+<script src="games/feed-ducks.js"></script>
+<script src="games/farm-band.js"></script>
+<script src="games/pig-bath.js"></script>
+<script>
+  window.addEventListener('load', () => {
+    window.mini = new MiniHost([VeggiePatch, FeedingTime, PeekABoo, BigLittle, FeedDucks, FarmBand, PigBath]);
+  });
+</script>
+</body>
+</html>

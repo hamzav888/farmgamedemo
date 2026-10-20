@@ -1,0 +1,78 @@
+/* ---------- Mini-game hub + overrides on top of ../css/style.css ---------- */
+
+/* drags must not scroll the page */
+#game { touch-action: none; }
+
+/* the farm keeps #hud-left non-interactive; our home button lives in it */
+#hud-left .hud-btn { pointer-events: auto; }
+
+/* ---------- picker ---------- */
+#hub {
+  position: absolute; inset: 0; z-index: 30;
+  background: radial-gradient(circle at 50% 30%, #ffe28a 0%, #ffb347 40%, #ff7e5f 100%);
+  display: flex; align-items: center; justify-content: center;
+}
+.hub-box {
+  background: rgba(255,255,255,.94); border: 6px solid #ff6b6b; border-radius: 36px;
+  padding: 22px 40px 18px; text-align: center; width: 1180px; max-width: 96%;
+  box-shadow: 0 14px 0 rgba(0,0,0,.15), 0 20px 40px rgba(0,0,0,.3);
+}
+.hub-box h1 { margin: 0; font-size: 50px; color: #e17055; text-shadow: 3px 3px 0 #ffe28a; white-space: nowrap; }
+.hub-box .tag { font-size: 23px; color: #6c5ce7; margin: 6px 0 14px; }
+.hub-stars {
+  display: inline-block; vertical-align: middle; margin-left: 8px;
+  background: #ffd23f; color: #7a3e12; font-size: 18px; font-weight: bold;
+  border-radius: 999px; padding: 3px 14px; white-space: nowrap;
+}
+.hub-stars.bump { animation: starpop .5s; }
+
+#hub-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px;
+  margin: 0 0 16px;
+}
+.game-card {
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  background: #fff; border: 5px solid #ffd23f; border-radius: 22px;
+  padding: 8px 8px 10px; cursor: pointer; font-family: inherit;
+  box-shadow: 0 8px 0 rgba(0,0,0,.12); transition: transform .08s, box-shadow .08s;
+}
+.game-card:active { transform: translateY(5px); box-shadow: 0 3px 0 rgba(0,0,0,.12); }
+.game-card:nth-child(1) { border-color: #ff9f43; }
+.game-card:nth-child(2) { border-color: #ff6b6b; }
+.game-card:nth-child(3) { border-color: #e9c46a; }
+.game-card:nth-child(4) { border-color: #48c774; }
+.game-card:nth-child(5) { border-color: #54a0ff; }
+.game-card:nth-child(6) { border-color: #a29bfe; }
+.game-card:nth-child(7) { border-color: #fd79a8; }
+/* each card carries a live preview rendered by the game's own code */
+.gc-preview { display: block; width: 100%; aspect-ratio: 16 / 10; border-radius: 14px; border: 3px solid rgba(0,0,0,.12); background: #7ccc5a; }
+.gc-row { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 6px; }
+.gc-emoji { font-size: 30px; line-height: 1; }
+.gc-name { font-size: 20px; font-weight: 900; color: #e17055; line-height: 1.1; }
+.gc-blurb { font-size: 13px; color: #5a3b1a; line-height: 1.2; }
+
+/* inside the main game the picker floats over the farm instead of replacing it */
+#hub.overlay { background: rgba(28,58,92,.78); }
+#hub.overlay .hub-box { border-color: #ffd23f; }
+
+/* mini-game HUD inside the main game */
+#mini-ui { position: absolute; inset: 0; pointer-events: none; z-index: 3; }
+#btn-mini-farm { position: absolute; left: 18px; top: 86px; pointer-events: auto; }
+#mini-actions { position: absolute; right: 18px; top: 86px; display: flex; gap: 10px; pointer-events: auto; }
+body.compact #btn-mini-farm, body.compact #mini-actions { top: 112px; }
+
+.hub-box .tiny { font-size: 17px; color: #7a3e12; margin: 10px 0 0; }
+
+/* phones: the stage is only 800 tall, so the picker must stay under that even
+   with bigger type — shorter previews, tighter gaps, no footer line */
+#hub { overflow: auto; }
+body.compact .hub-box { padding: 14px 22px 12px; }
+body.compact .hub-box h1 { font-size: 46px; }
+body.compact .hub-box .tag { font-size: 24px; margin: 4px 0 10px; }
+body.compact #hub-grid { grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 12px; }
+body.compact .gc-preview { aspect-ratio: 16 / 9; }
+body.compact .game-card { padding: 6px 6px 8px; }
+body.compact .gc-emoji { font-size: 30px; }
+body.compact .gc-name { font-size: 22px; }
+body.compact .gc-blurb { font-size: 14px; }
+body.compact .hub-box .tiny { display: none; }

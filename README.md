@@ -111,6 +111,41 @@ Inside the barn all the animals are asleep, snoring with little "z"s.
   Right answer: confetti + celebration + counting together. Wrong answer: *"Let's count them together!"*, then it asks again.
 * **🔄 Count Again** clears the badges.
 
+## 🎮 Mini-games
+
+Seven little games, each teaching something different, each drawn with the farm's own
+art and spoken by the farm's own narrator. Tap **🎮** on the farm to pick one, or open
+`minigames/` (<https://farmgamedemo.vercel.app/minigames/>) for the standalone showcase.
+Stars earned in a mini-game count on the farm and vice versa.
+
+| | Game | How it plays | Teaches |
+| --- | --- | --- | --- |
+| 🥕 | **Veggie Patch** | Drag vegetables from the crate into the shaped holes in the scarecrow's garden. Round 3 puts carrot and pumpkin — both orange — together, so the *shape* has to do the work. | Shapes, colour words |
+| 🍎 | **Feeding Time** | A hungry animal walks in and waits with a "?" over its head. Drag the right food from the tray. Wrong food → gentle head-shake and a fact. | What animals eat |
+| 🌾 | **Peek-a-boo** | Hay bales in the barn flip to reveal animals; find the pairs. Eyes peep over the bales while you think. Two pairs to start (for a one-year-old that's just peek-a-boo), six at most. | Memory, same/not the same |
+| 🐄 | **Big Pen, Little Pen** | Animals come out of the barn one at a time — a cow, then a calf. Drag each to the BIG pen or the little pen; they wander their pen once home. | Big/little, baby-animal names |
+| 🦆 | **Feed the Ducks** | "Can you feed *three* ducks?" Tap three; bread flies to each and a tray of loaves fills in. The barn teaches counting *what's there*; this teaches counting *out* a number. | Counting to a target |
+| 🎵 | **Farm Band** | Five animals on coloured drums; every tap is a pentatonic banjo note, so anything bashed out sounds like a tune. Tap the rooster to copy his tune (2 → 5 notes); finish the whole thing for a concert. | Cause/effect, sequence memory |
+| 🐷 | **Muddy Pig Bath** | Rub anywhere and the sponge wipes mud off a huge pig, with bubbles and giggles. Clean → a shine, a jump for joy, then he rolls in the mud again. | Motor control, clean/dirty |
+
+Design rules shared by all seven, because they are for 1–5s: tap or a simple drag only;
+nothing to read (the narrator runs everything); no fail states — a wrong answer is a gentle
+redirect; nine idle seconds brings up a hint ring; one star per round.
+
+### How they're built
+
+```
+minigames/mg-art.js    new art in the farm's style: 8 vegetables, 11 foods, tub, sponge, drums...
+minigames/mg-core.js   MiniFX (tweens, timers, effects, tap+drag routing) + the standalone host
+minigames/mg-hub.js    the picker; each card's preview is rendered by the game's own render()
+minigames/games/*.js   one class per game: enter / update / render / onDown / onMove / onUp / onTap
+js/mini.js             MiniScene — hosts the very same classes inside the main game as a third scene
+```
+
+Nothing is duplicated between the farm and the mini-games: they share `drawSpecies`, `Animal`,
+`S.*`, `Sfx`, `Voice` and the HUD. A game played on the farm and on the hub page is the same code.
+Test flags: `?start&mini=veggie` on the farm; `?game=veggie` on the hub (ids: `veggie feed peek pens ducks band bath`).
+
 ## 🔊 About the sound
 
 There are no audio files — every sound is synthesised at runtime.

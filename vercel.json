@@ -2,7 +2,7 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "headers": [
     {
-      "source": "/(js|css)/(.*)\\.(js|css)",
+      "source": "/(js|css|minigames)/(.*)\\.(js|css)",
       "headers": [
         { "key": "Cache-Control", "value": "public, max-age=600, must-revalidate" }
       ]

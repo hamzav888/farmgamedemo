@@ -19,6 +19,8 @@ class Game {
     this._resize(); window.addEventListener('resize', () => this._resize());
     this.farm = new FarmScene(this);
     this.barn = new BarnScene(this);
+    this.mini = new MiniScene(this);
+    this.MINI_GAMES = [VeggiePatch, FeedingTime, PeekABoo, BigLittle, FeedDucks, FarmBand, PigBath];
     this._bindUI();
     this._bindInput();
     this._applyUrlFlags();
@@ -29,13 +31,14 @@ class Game {
   // Optional URL flags for quick testing: ?start  ?night  ?barn  ?quiz  ?card
   _applyUrlFlags() {
     const q = new URLSearchParams(location.search);
-    if (!q.has('start') && !q.has('night') && !q.has('barn')) return;
+    if (!q.has('start') && !q.has('night') && !q.has('barn') && !q.has('mini')) return;
     setTimeout(() => {
       this.start();
       if (q.has('night')) { this.setMode('night', false); this.dark = 1; this.farm.animals.forEach(a => a.hidden = true); }
       if (q.has('barn')) { this.sceneName = 'barn'; this.barn.enter(); this.$barnUI.classList.remove('hidden'); Sfx.setMuffled(true); this._updateBarnUI(); this._updateFarmUI(); }
       if (q.has('quiz')) setTimeout(() => this.barn.startQuiz(), 300);
       if (q.has('card')) setTimeout(() => this.introduce(this.farm.animals[0]), 300);
+      if (q.has('mini')) { const G = this.MINI_GAMES.find(g => g.id === q.get('mini')); if (G) setTimeout(() => this.startMini(G), 200); }
     }, 50);
   }
   /* The row of animals on the start screen is drawn with drawSpecies() — the
@@ -97,7 +100,7 @@ class Game {
     // phones/tablets shrink the stage a lot — switch to bigger buttons & text
     document.body.classList.toggle('compact', s < 0.62);
   }
-  get scene() { return this.sceneName === 'farm' ? this.farm : this.barn; }
+  get scene() { return this.sceneName === 'farm' ? this.farm : this.sceneName === 'barn' ? this.barn : this.mini; }
 
   /* ----- UI ----- */
   _bindUI() {
@@ -112,6 +115,12 @@ class Game {
     $('btn-recount').addEventListener('click', () => { Sfx.play('pop'); this.barn.stopQuiz(); this.barn.resetCounts(); this.narrate('Okay! Tap the animals to count them again.'); });
     $('btn-listen').addEventListener('click', () => { Sfx.play('pop'); if (this.miniGame === 'listen') this.farm.stopListen(); else this.farm.startListen(); });
     $('btn-eggs').addEventListener('click', () => { Sfx.play('pop'); if (this.miniGame === 'eggs') this.farm.stopEggHunt(); else this.farm.startEggHunt(); });
+    $('btn-games').addEventListener('click', () => { Sfx.play('pop'); this.openPicker(); });
+    $('btn-hub-close').addEventListener('click', () => { Sfx.play('pop'); this.closePicker(); });
+    $('btn-mini-farm').addEventListener('click', () => { Sfx.play('pop'); this.exitMini(); });
+    $('btn-mini-games').addEventListener('click', () => { Sfx.play('pop'); this.openPicker(); });
+    $('btn-mini-again').addEventListener('click', () => { if (this.mini.GameClass) { Sfx.play('pop'); this.startMini(this.mini.GameClass); } });
+    this.$miniUI = $('mini-ui'); this.$hub = $('hub');
     this.$card = $('card'); this.$quiz = $('quiz'); this.$tapHint = $('tap-hint'); this.$barnUI = $('barn-ui'); this.$hint = $('barn-hint');
     this.$farmUI = $('farm-ui');
     $('star-pill').textContent = '⭐ ' + this.stars;
@@ -145,6 +154,7 @@ class Game {
       if (!this.started) return;
       e.preventDefault();
       const p = toLocal(e), now = performance.now();
+      if (this.sceneName === 'mini') { try { this.canvas.setPointerCapture(e.pointerId); } catch (x) { } this.mini.onDown(p.x, p.y, e.pointerId); return; }
       const isDouble = now - this._lastDown.t < 320 && U.dist(p.x, p.y, this._lastDown.x, this._lastDown.y) < 40;
       this._lastDown = { t: now, x: p.x, y: p.y };
       if (isDouble) {
@@ -159,8 +169,12 @@ class Game {
     this.canvas.addEventListener('pointermove', e => {
       if (!this.started) return;
       const p = toLocal(e);
+      if (this.sceneName === 'mini') { this.canvas.style.cursor = this.mini.onMove(p.x, p.y, e.pointerId) ? 'pointer' : 'default'; return; }
       this.canvas.style.cursor = this.scene.hover(p.x, p.y) ? 'pointer' : 'default';
     });
+    const up = e => { if (this.sceneName !== 'mini' || !this.started) return; const p = toLocal(e); this.mini.onUp(p.x, p.y); };
+    this.canvas.addEventListener('pointerup', up);
+    this.canvas.addEventListener('pointercancel', up);
     // fallback: on first interaction anywhere, resume audio
     document.addEventListener('pointerdown', () => { if (Sfx.ctx && Sfx.ctx.state === 'suspended') Sfx.ctx.resume(); }, { passive: true });
     // mobile: no long-press menus or pinch zoom on the game
@@ -206,6 +220,48 @@ class Game {
     if (this.sceneName === 'barn') this.exitBarn();
     this.setMode('day', false);
     setTimeout(() => { this.farm.emergeRush = false; cb(); }, 2000);
+  }
+  /* ----- mini-games: the same classes as minigames/, hosted by js/mini.js ----- */
+  openPicker() {
+    if (!this.started) this.start();
+    if (!this._hubBuilt) {   // the cards carry live previews drawn by each game's own render()
+      this._hubBuilt = true;
+      MiniHub.buildCards(document.getElementById('hub-grid'), this.MINI_GAMES, this.mini, G => { Sfx.play('pop'); this.startMini(G); });
+    }
+    document.getElementById('star-pill-hub').textContent = '⭐ ' + this.stars;
+    this.$hub.classList.remove('hidden');
+  }
+  closePicker() { this.$hub.classList.add('hidden'); }
+  startMini(G) {
+    this.closePicker();
+    this.farm.stopMiniGames(); this.barn.stopQuiz(); this.hideCard(); Voice.cancel();
+    this.fade(() => {
+      if (this.sceneName === 'barn') { this.$barnUI.classList.add('hidden'); Sfx.setMuffled(false); }
+      this.sceneName = 'mini'; this.autoCycle = false;          // the clock waits while a game is on
+      this._updateFarmUI(); this.$miniUI.classList.remove('hidden'); this.$tapHint.classList.add('hidden');
+      document.getElementById('title-pill').textContent = G.emoji + ' ' + G.title;
+      this.mini.start(G);
+    });
+  }
+  exitMini() {
+    if (this.sceneName !== 'mini') return;
+    this.closePicker();
+    this.fade(() => {
+      this.mini.stop(); Voice.cancel(); this.hideCard();
+      this.sceneName = 'farm'; this.autoCycle = true;
+      this.$miniUI.classList.add('hidden'); this._updateFarmUI();
+      document.getElementById('title-pill').textContent = '🐄 Sunny Barn Farm 🐔';
+      this.narrate('Welcome back to the farm!');
+    });
+  }
+  // the learning card, from raw parts (the farm's showCard takes an Animal)
+  showCardRaw(emoji, name, subHtml, ms = 3200) {
+    document.getElementById('card-emoji').textContent = emoji;
+    document.getElementById('card-name').textContent = name.toUpperCase();
+    document.getElementById('card-sub').innerHTML = subHtml || '';
+    this.$card.classList.remove('hidden');
+    this.$card.style.animation = 'none'; void this.$card.offsetWidth; this.$card.style.animation = '';
+    clearTimeout(this.cardTimer); this.cardTimer = setTimeout(() => this.hideCard(), ms);
   }
   _updateFarmUI() {
     this.$farmUI.classList.toggle('hidden', !(this.started && this.sceneName === 'farm'));
@@ -328,6 +384,7 @@ class Game {
     // update both scenes lightly (farm keeps living while inside)
     this.farm.update(dt);
     if (this.sceneName === 'barn') this.barn.update(dt);
+    if (this.sceneName === 'mini') this.mini.update(dt);
     // render
     const ctx = this.ctx;
     ctx.save();
