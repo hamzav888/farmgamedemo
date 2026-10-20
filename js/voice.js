@@ -14,10 +14,22 @@
    better — and if a line has no clip, synthesis fills in. */
 const Voice = {
   voice: null, ready: false, enabled: true, _sub: null, _subTimer: null,
-  clips: null, clipBase: '', _buffers: {}, _cur: null, _useClips: false, _id: 0,
+  clips: null, clipBase: '', _buffers: {}, _cur: null, _useClips: false, _id: 0, _ready: null, _readyDone: false,
 
+  // Start fetching the manifest the moment the script loads — not at the first
+  // tap — so the very first line already has its clip. The base is worked out
+  // from this script's own URL, so it is right on the farm and on the hub page.
+  _preload() {
+    const src = (document.currentScript && document.currentScript.src) || '';
+    this.clipBase = src.replace(/js\/voice\.js.*$/, '');
+    this._ready = fetch(this.clipBase + 'voice/manifest.json', { cache: 'no-cache' })
+      .then(r => r.ok ? r.json() : null)
+      .then(mf => { if (mf && mf.lines) { this.clips = mf; this._decide(); } })
+      .catch(() => { })
+      .finally(() => { this._readyDone = true; });
+  },
   init(o = {}) {
-    this.clipBase = o.base || '';
+    if (o.base != null && !this.clipBase) this.clipBase = o.base;
     this._sub = document.getElementById('subtitle');
     if ('speechSynthesis' in window) {
       const pick = () => {
@@ -26,10 +38,7 @@ const Voice = {
       };
       pick(); speechSynthesis.onvoiceschanged = pick;
     }
-    fetch(this.clipBase + 'voice/manifest.json', { cache: 'no-cache' })
-      .then(r => r.ok ? r.json() : null)
-      .then(mf => { if (mf && mf.lines) { this.clips = mf; this._decide(); } })
-      .catch(() => { });
+    if (!this._ready) this._preload();
   },
   // the better a voice, the higher it sorts; anything novelty or deep goes last
   _score(v) {
@@ -55,7 +64,7 @@ const Voice = {
     if (this._cur) { try { this._cur.stop(); } catch (e) { } this._cur = null; }
     this._hideSub();
   },
-  say(text, opts = {}) {
+  async say(text, opts = {}) {
     const { rate = 0.95, pitch = 1.08, interrupt = true, onend = null, subtitle = true } = opts;
     const id = ++this._id;
     let done = false;
@@ -66,6 +75,9 @@ const Voice = {
       if ('speechSynthesis' in window) speechSynthesis.cancel();
       if (this._cur) { try { this._cur.stop(); } catch (e) { } this._cur = null; }
     }
+    // if the manifest is still on its way, give it a moment rather than letting
+    // the first line come out in a different voice from the rest
+    if (!this._readyDone && this._ready) { await Promise.race([this._ready, new Promise(r => setTimeout(r, 900))]); if (id !== this._id) return; }
     const key = text.trim(), file = this._useClips && this.clips.lines[key];
     if (file && Sfx.ctx) { this._playClip(file, key, id, finish, rate, pitch); return; }
     this._speak(text, rate, pitch, finish);
@@ -104,3 +116,4 @@ const Voice = {
   },
   _hideSub() { if (this._sub) this._sub.classList.add('hidden'); }
 };
+Voice._preload();
