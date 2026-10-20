@@ -138,6 +138,9 @@ class MiniHost {
     this._bindUI(); this._bindInput();
     MiniHub.buildCards(document.getElementById('hub-grid'), games, this, G => { this._ensureAudio(); Sfx.play('pop'); this.start(G); });
     this._applyUrlFlags();
+    // the farm's root service worker also covers this folder; register it here
+    // too so a visitor who lands straight on the hub gets offline play as well
+    if ('serviceWorker' in navigator && location.protocol !== 'file:') setTimeout(() => navigator.serviceWorker.register('../sw.js').catch(() => { }), 800);
     requestAnimationFrame(ts => this._frame(ts));
   }
 
