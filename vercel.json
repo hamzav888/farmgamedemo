@@ -4,7 +4,7 @@
     {
       "source": "/(js|css|minigames)/(.*)\\.(js|css)",
       "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=600, must-revalidate" }
+        { "key": "Cache-Control", "value": "no-cache" }
       ]
     },
     {
