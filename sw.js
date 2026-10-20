@@ -2,7 +2,7 @@
    The game has no network dependencies at all, so caching the shell is enough
    to make it work on a plane, in a car, or on a tablet with the wifi off.
    Bump CACHE when you ship a change, or the old files keep being served. */
-const CACHE = 'sunny-barn-farm-v5';
+const CACHE = 'sunny-barn-farm-v6';
 
 const SHELL = [
   './',
@@ -60,23 +60,14 @@ self.addEventListener('activate', e => {
 self.addEventListener('fetch', e => {
   const req = e.request;
   if (req.method !== 'GET' || new URL(req.url).origin !== self.location.origin) return;
-  // Network-first for the page itself so a new version is picked up promptly;
-  // cache-first for everything else because none of it changes at runtime.
-  const isPage = req.mode === 'navigate';
-  if (isPage) {
-    e.respondWith(
-      fetch(req).then(r => {
-        const copy = r.clone();
-        caches.open(CACHE).then(c => c.put(req, copy));
-        return r;
-      }).catch(() => caches.match(req).then(r => r || caches.match('index.html')))
-    );
-    return;
-  }
+  // Network-first for EVERYTHING, cache only as the offline fallback.
+  // Cache-first assets once combined a fresh index.html with stale scripts on
+  // the first load after a deploy; the game is tiny and sits on a CDN, so
+  // fetching fresh costs nothing and every load is a consistent version.
   e.respondWith(
-    caches.match(req).then(hit => hit || fetch(req).then(r => {
+    fetch(req).then(r => {
       if (r && r.ok) { const copy = r.clone(); caches.open(CACHE).then(c => c.put(req, copy)); }
       return r;
-    }))
+    }).catch(() => caches.match(req).then(hit => hit || (req.mode === 'navigate' ? caches.match('index.html') : undefined)))
   );
 });
