@@ -2,3 +2,7 @@
 .tmp/
 __pycache__/
 *.pyc
+
+# free neural TTS toolchain (tools/make-voice.py --engine kokoro): environment + model, not source
+tools/tts/.venv/
+tools/tts/models/

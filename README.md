@@ -190,17 +190,18 @@ game's own audio graph — ducked under the music, a touch of presence, no robot
 without a clip falls back to the browser's speech synthesis, whose voices are ranked by quality
 markers (*Natural, Neural, Enhanced, Premium*).
 
-The shipped clips were rendered from this Mac's built-in voice. To upgrade to a professional
-neural voice, run the tool with an API key — **no code changes**, the manifest marks them as
-`neural` and the game prefers them everywhere:
+The shipped clips are rendered with **Kokoro**, a free, open-source neural voice that runs
+offline on the Mac (`tools/tts/`, Apache-2.0 — no account, no key, no limit). Re-render the
+whole narrator, or switch voice, with one command:
 
 ```bash
-OPENAI_API_KEY=sk-... python3 tools/make-voice.py --engine openai --voice nova
+python3 tools/make-voice.py --engine kokoro --voice af_heart
 ```
 
-```bash
-ELEVENLABS_API_KEY=... python3 tools/make-voice.py --engine elevenlabs --voice <voice_id>
-```
+Other free voices: `af_bella`, `af_sarah`, `bf_emma`, `bf_isabella`. Setup (once, ≈350 MB) is in
+`tools/tts/README.md`, which also covers the other free route — Apple's own *Premium* voices,
+downloadable in System Settings and then used with `--engine say --voice "Ava (Premium)"`.
+Paid services (`--engine openai` / `--engine elevenlabs`) are supported too but not needed.
 
 (`--dry-run` lists the lines. The line list in the tool mirrors every `narrate()` in the game;
 when you add a line in the game, add it there too and re-run — only missing clips are rendered.)
@@ -224,7 +225,8 @@ js/barn.js               barn interior scene (sleeping animals, counting, quiz, 
 js/main.js               game loop, input, day/night cycle, HUD, cards, narration
 serve.py                 tiny local web server (python3 serve.py)
 tools/make-icons.html    regenerates icons/ from the game's own art
-tools/make-voice.py      renders every narrator line to voice/ (local voice, or OpenAI / ElevenLabs with a key)
+tools/make-voice.py      renders every narrator line to voice/ (Kokoro free neural voice; or say / OpenAI / ElevenLabs)
+tools/tts/               the free neural voice: Kokoro renderer + setup guide (venv and model are git-ignored)
 ```
 
 ### Regenerating the icons

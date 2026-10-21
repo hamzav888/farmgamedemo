@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Render every line the narrator can say into voice/ and write voice/manifest.json.
 
-    python3 tools/make-voice.py                 # the Mac's own voice (Samantha) — same quality the browser has
+    python3 tools/make-voice.py --engine kokoro --voice af_heart   # FREE neural voice, offline, unlimited (default)
+    python3 tools/make-voice.py --engine say                       # the Mac's own voice (Samantha)
     OPENAI_API_KEY=sk-... python3 tools/make-voice.py --engine openai --voice nova
     ELEVENLABS_API_KEY=... python3 tools/make-voice.py --engine elevenlabs --voice <voice_id>
 
@@ -137,33 +138,55 @@ def render_elevenlabs(text, path, voice):
                                  headers={'xi-api-key': key, 'Content-Type': 'application/json', 'Accept': 'audio/mpeg'})
     with urllib.request.urlopen(req, timeout=60) as r, open(path, 'wb') as f: f.write(r.read())
 
+def render_kokoro_batch(jobs, voice, speed):
+    """jobs: list of (text, m4a_path). Renders WAVs in one model load, then AAC-encodes each."""
+    venv = os.path.join(ROOT, 'tools', 'tts', '.venv', 'bin', 'python')
+    if not os.path.exists(venv): sys.exit('Kokoro is not set up: see tools/tts/README.md (uv venv --python 3.12 ...)')
+    tmp = tempfile.mkdtemp()
+    spec = {'voice': voice, 'speed': speed, 'jobs': [{'text': t, 'wav': os.path.join(tmp, f'{i}.wav')} for i, (t, _) in enumerate(jobs)]}
+    spec_path = os.path.join(tmp, 'jobs.json'); json.dump(spec, open(spec_path, 'w'))
+    subprocess.run([venv, os.path.join(ROOT, 'tools', 'tts', 'kokoro_batch.py'), spec_path], check=True)
+    for (t, path), j in zip(jobs, spec['jobs']):
+        subprocess.run(['afconvert', '-f', 'm4af', '-d', 'aac', '-b', '56000', j['wav'], path], check=True, capture_output=True)
+        os.remove(j['wav'])
+
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument('--engine', choices=['say', 'openai', 'elevenlabs'], default='say')
+    ap.add_argument('--engine', choices=['kokoro', 'say', 'openai', 'elevenlabs'], default='kokoro')
     ap.add_argument('--voice', default=None)
+    ap.add_argument('--speed', type=float, default=0.95, help='kokoro speed (1.0 = natural)')
     ap.add_argument('--rate', type=int, default=168, help='words per minute (say engine)')
     ap.add_argument('--dry-run', action='store_true', help='list the lines and stop')
     a = ap.parse_args()
-    voice = a.voice or {'say': 'Samantha', 'openai': 'nova', 'elevenlabs': ''}[a.engine]
-    ext = 'm4a' if a.engine == 'say' else 'mp3'
+    voice = a.voice or {'kokoro': 'af_heart', 'say': 'Samantha', 'openai': 'nova', 'elevenlabs': ''}[a.engine]
+    ext = 'm4a' if a.engine in ('say', 'kokoro') else 'mp3'
     lines = all_lines()
     print(f'{len(lines)} lines')
     if a.dry_run:
         for t in lines: print('  ', t)
         return
     os.makedirs(OUT, exist_ok=True)
-    manifest = {'engine': a.engine, 'voice': voice, 'quality': 'standard' if a.engine == 'say' else 'neural', 'lines': {}}
-    done = 0
+    # clips are named by engine+voice+text, so switching voice never mixes old and new
+    tag = hashlib.sha1(f'{a.engine}:{voice}'.encode()).hexdigest()[:4]
+    quality = 'neural' if a.engine != 'say' or '(Premium)' in voice or '(Enhanced)' in voice else 'standard'
+    manifest = {'engine': a.engine, 'voice': voice, 'quality': quality, 'lines': {}}
+    done = 0; pending = []
     for text in lines:
-        name = hashlib.sha1(text.encode('utf-8')).hexdigest()[:12] + '.' + ext
+        name = tag + hashlib.sha1(text.encode('utf-8')).hexdigest()[:12] + '.' + ext
         path = os.path.join(OUT, name)
-        if not os.path.exists(path):
-            if a.engine == 'say': render_say(text, path, voice, a.rate)
-            elif a.engine == 'openai': render_openai(text, path, voice)
-            else: render_elevenlabs(text, path, voice)
-            done += 1
-            if done % 25 == 0: print(f'  rendered {done}...', flush=True)
         manifest['lines'][text] = name
+        if os.path.exists(path): continue
+        if a.engine == 'kokoro': pending.append((text, path)); continue
+        if a.engine == 'say': render_say(text, path, voice, a.rate)
+        elif a.engine == 'openai': render_openai(text, path, voice)
+        else: render_elevenlabs(text, path, voice)
+        done += 1
+        if done % 25 == 0: print(f'  rendered {done}...', flush=True)
+    if pending: render_kokoro_batch(pending, voice, a.speed); done += len(pending)
+    # tidy away clips from other engines/voices so voice/ holds exactly one narrator
+    keep = set(manifest['lines'].values())
+    for f in os.listdir(OUT):
+        if f.endswith(('.m4a', '.mp3')) and f not in keep: os.remove(os.path.join(OUT, f))
     with open(os.path.join(OUT, 'manifest.json'), 'w') as f: json.dump(manifest, f, ensure_ascii=False, indent=0)
     total = sum(os.path.getsize(os.path.join(OUT, f)) for f in os.listdir(OUT))
     print(f'rendered {done} new, {len(lines)} total, {total / 1e6:.1f} MB in voice/ ({a.engine} / {voice})')
