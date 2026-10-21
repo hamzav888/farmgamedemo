@@ -21,6 +21,7 @@ class FarmBand {
     this.rooster = null; this.freeTaps = 0; this.timers = [];
   }
   enter() {
+    Sfx.setMusicLevel(0.25);   // the child is the music here; the song sits right back
     this.slots = FarmBand.SLOTS.map(([sp, midi, color], i) => {
       const x = 250 + i * 195;
       const a = this.h.makeAnimal(sp, x, 520, { variant: 0, dir: 1, scale: sp === 'chicken' ? 1.6 : sp === 'cow' ? 1.0 : 1.15 });
@@ -133,5 +134,5 @@ class FarmBand {
     }
   }
   hover(x, y) { return !!(this._slotAt(x, y) || this.rooster.hit(x, y)); }
-  exit() { this.timers.forEach(clearTimeout); this.timers = []; }
+  exit() { this.timers.forEach(clearTimeout); this.timers = []; Sfx.setMusicLevel(1); }
 }

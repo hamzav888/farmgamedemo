@@ -148,24 +148,28 @@ Test flags: `?start&mini=veggie` on the farm; `?game=veggie` on the hub (ids: `v
 
 ## 🔊 About the sound
 
-There are no sound-effect or music files — every effect and both songs are synthesised at
-runtime. The narrator is the one thing that *can* be recorded (see below).
+Every sound effect is synthesised at runtime — there are no effect files. The two songs and the
+narrator are recordings.
 
 ### Music
 
-**Day — "Sunny Barn Hoedown"** is an arrangement, not a loop: intro (banjo + bass) → verse on
-whistle → verse again with a fiddle harmony in thirds → chorus (kick, brushed snare, spoons,
-mandolin shimmer) → the tune on banjo over fingerpicked guitar → a hushed bridge (guitar +
-whistle, no drums, 10 dB down) → chorus again, the biggest moment → tag. About two minutes
-before it repeats, and the lead swaps between whistle and fiddle from one day to the next.
+* **Day — "High Meadow Skip"** (120 BPM) · **Night — "Crickets in the Tall Grass"** (76 BPM),
+  in `music/` as 192 kbps AAC (~2.8 MB each). They're preloaded with the page, cached for offline
+  play, and named by content hash so the CDN can cache them forever without ever serving an old one.
+* **Seamless looping.** Neither song is written to loop, so the loop points were found by beat
+  analysis: the bar line just before each song's ending (58 bars of the day song, 33 of the night),
+  nudged onto the actual beats. The next pass crossfades in on that bar with an equal-power curve,
+  so the join is on the beat and doesn't dip — measured, the level through the day seam holds within
+  1.3 dB. Day ↔ night crossfades from one song into the other over 3 s.
+* **Mix.** Each song's gain is set from its measured loudness so the music sits under the animals
+  and the narrator (-30 / -32 dBFS); it ducks under narration and dips to 25% in the Farm Band,
+  where the child is making the music.
+* **Fallback.** If a song can't load, the original synthesised arrangements play instead
+  ("Sunny Barn Hoedown" and "Barn Lullaby", built from Karplus–Strong banjo, guitar, mandolin and
+  bass, a whistle and fiddle, and synth drums — all in `js/audio.js`).
 
-**Night — "Barn Lullaby"**: music box → a warm pad joins → a second tune with a glockenspiel
-echo → a soft fiddle in thirds. Longer than a night, so it never repeats inside one.
-
-Every instrument is built in `js/audio.js`: banjo, guitar, mandolin and upright bass are
-Karplus–Strong strings; whistle and fiddle are filtered oscillators with vibrato and a breath or
-bow noise on the attack; drums are shaped noise and sine thumps. Each section has a `mix` level,
-which is where the dynamics come from.
+To swap a song: put the new file in `music/`, then update its entry in `Sfx.TRACKS` (file name, gain,
+first-sound time, loop start/end, crossfade). Keep the content hash in the file name.
 
 ### Effects
 
@@ -222,7 +226,8 @@ css/style.css            kid-friendly UI styles (+ the polish layer: glossy butt
 fonts/                   Fredoka, the game's rounded display face (SIL OFL, self-hosted so it works offline)
 icons/                   app icons + favicons (generated — see tools/)
 js/util.js               helpers + canvas drawing primitives
-js/audio.js              Web Audio synth: formant animal calls, the two songs + instruments, stereo, reverb, ambience
+js/audio.js              Web Audio: song player (beat-aligned loops), formant animal calls, synth fallback songs, stereo, reverb, ambience
+music/                   the day and night songs (content-hashed AAC)
 js/voice.js              narrator: recorded clips through Web Audio, speech synthesis as fallback
 voice/                   narrator clips + manifest.json (generated — see tools/make-voice.py)
 js/animals.js            animal definitions, procedural drawing, wandering AI, tricks

@@ -62,6 +62,7 @@ const Sfx = {
     const len = c.sampleRate * 2, buf = c.createBuffer(1, len, c.sampleRate), d = buf.getChannelData(0);
     for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
     this.noiseBuf = buf;
+    for (const k in this.TRACKS) this._decodeTrack(k).catch(() => { });   // the songs were fetched at page load; decode now
   },
 
   // Decaying stereo noise burst = a believable small-room impulse response.
@@ -89,7 +90,10 @@ const Sfx = {
     this._duck = on; this._applyMusicGain();
     if (this.amb) this.amb.gain.setTargetAtTime(on ? 0.45 : 1, this.now(), 0.2);
   },
-  _applyMusicGain() { if (this.music) this.music.gain.setTargetAtTime(this.musicOn ? (this._duck ? 0.06 : 0.2) : 0, this.now(), 0.15); },
+  _applyMusicGain() { if (this.music) this.music.gain.setTargetAtTime(this.musicOn ? (this._duck ? 0.06 : 0.2) * this._musicLevel : 0, this.now(), 0.15); },
+  _musicLevel: 1,
+  // a scene can sit the music back (the Farm Band, where the child is the music)
+  setMusicLevel(k) { this._musicLevel = k; this._applyMusicGain(); },
   // Inside the barn: outside world goes muffled and the room gets boomy + echoey.
   setMuffled(m) {
     this._muffled = m;
@@ -666,16 +670,130 @@ const Sfx = {
   i_glock(f, when, vol) { this.tone({ wave: 'sine', f0: f, dur: 0.9, vol, when, at: 0.003, rel: 0.85, bus: this.music, pan: 0.3 }); this.tone({ wave: 'sine', f0: f * 2.7, dur: 0.25, vol: vol * 0.2, when, at: 0.002, rel: 0.22, bus: this.music, pan: 0.3 }); },
   i_pad(freqs, when, dur, vol) { freqs.forEach(f => [0.997, 1.004].forEach(d => this.tone({ wave: 'triangle', f0: f * d, dur, vol: vol / freqs.length, when, at: Math.min(0.6, dur * 0.3), rel: Math.min(0.8, dur * 0.4), lp: 900, bus: this.music }))); },
 
-  /* ================= music: step sequencer ================= */
+  /* ================= the songs =================
+     Day and night each have a recorded song (music/). Each loops on a bar line
+     with an equal-power crossfade, so it never jumps or gaps; switching
+     between day and night crossfades from one song into the other. If a song
+     can't be loaded, the synthesised arrangements further down play instead. */
+  TRACKS: {
+    // file, mix gain (measured: -30 / -32 dBFS integrated at the output, under the animals
+    // and the narrator), first audible sample, and the loop: bar lines found by beat analysis
+    // (120 and 76 BPM) just before each song's ending, joined by an equal-power crossfade.
+    day:   { file: 'music/high-meadow-skip-2c8ba75b.m4a', gain: 1.036, onset: 0.28, loopStart: 0.135, loopEnd: 116.132, xfade: 2.0 },
+    night: { file: 'music/crickets-in-the-tall-grass-b3e204fe.m4a', gain: 0.855, onset: 0.075, loopStart: 0.448, loopEnd: 104.685, xfade: 3.0 },
+  },
+  _trk: {}, _players: [], _songTimer: null,
+  // fetch at page load (day first, then night) so Play has its song ready
+  _preloadTracks() {
+    const src = (document.currentScript && document.currentScript.src) || '';
+    this._trackBase = src.replace(/js\/audio\.js.*$/, '');
+    let chain = Promise.resolve();
+    for (const k of ['day', 'night']) {
+      const t = this._trk[k] = { failed: false, shift: 0 };
+      t.fetched = chain = chain.then(() => fetch(this._trackBase + this.TRACKS[k].file))
+        .then(r => { if (!r.ok) throw new Error(r.status); return r.arrayBuffer(); })
+        .then(ab => { t.ab = ab; }, () => { t.failed = true; });
+    }
+  },
+  _decodeTrack(k) {
+    const t = this._trk[k];
+    if (!t || !this.ctx) return Promise.reject(new Error('no track'));
+    if (!t.decoded) t.decoded = t.fetched
+      .then(() => { if (t.failed || !t.ab) throw new Error('fetch failed'); const ab = t.ab; t.ab = null; return this.ctx.decodeAudioData(ab); })
+      .then(buf => {
+        t.buf = buf;
+        // a browser's AAC decoder may keep or drop the encoder's priming samples; find the
+        // first sound and shift the loop points by the difference so they stay on the beat
+        const s = this._onsetOf(buf) - this.TRACKS[k].onset; t.shift = Math.abs(s) < 0.2 ? s : 0;
+        return buf;
+      })
+      .catch(e => { t.failed = true; throw e; });
+    return t.decoded;
+  },
+  _onsetOf(buf) {
+    const d = buf.getChannelData(0); let pk = 0;
+    for (let i = 0; i < d.length; i += 7) { const a = Math.abs(d[i]); if (a > pk) pk = a; }
+    const thr = pk * 0.00316;                                       // -50 dB, as in the analysis
+    for (let i = 0; i < d.length; i++) if (Math.abs(d[i]) > thr) return i / buf.sampleRate;
+    return 0;
+  },
+  // equal-power ramp: keeps the loudness steady through a crossfade
+  _eqRamp(param, start, dur, from, to) {
+    const n = 64, curve = new Float32Array(n);
+    for (let i = 0; i < n; i++) { const x = i / (n - 1); curve[i] = Math.max(0.0001, to > from ? from + (to - from) * Math.sin(x * Math.PI / 2) : to + (from - to) * Math.cos(x * Math.PI / 2)); }
+    try { param.setValueCurveAtTime(curve, start, dur); }
+    catch (e) { param.cancelScheduledValues(start); param.setValueAtTime(Math.max(0.0001, from), start); param.linearRampToValueAtTime(Math.max(0.0001, to), start + dur); }
+  },
+  _startInstance(mode, when, offset, fadeIn) {
+    const T = this.TRACKS[mode], t = this._trk[mode], c = this.ctx;
+    const src = c.createBufferSource(); src.buffer = t.buf;
+    const g = c.createGain();
+    if (fadeIn > 0) { g.gain.setValueAtTime(0.0001, when); this._eqRamp(g.gain, when, fadeIn, 0.0001, T.gain); } else g.gain.setValueAtTime(T.gain, when);
+    src.connect(g); g.connect(this.music);
+    src.start(when, offset);
+    const p = { src, g, mode, vol: T.gain, seamAt: when + (T.loopEnd + t.shift - offset), out: false, next: false };
+    src.onended = () => { this._players = this._players.filter(x => x !== p); try { g.disconnect(); } catch (e) { } };
+    this._players.push(p);
+    return p;
+  },
+  _playSong(mode) {
+    const switching = this._players.some(p => !p.out);
+    this._fadeSongs(switching ? 3 : 0.4);                          // day <-> night: a long crossfade between songs
+    this._startInstance(mode, this.ctx.currentTime + 0.05, 0, switching ? 3 : 0.6);   // from the top
+    if (!this._songTimer) this._songTimer = setInterval(() => this._tickSongs(), 250);
+  },
+  // schedule each next pass a second ahead, sample-accurately, crossfading at the seam
+  _tickSongs() {
+    const c = this.ctx; if (!c) return;
+    for (const p of this._players.slice()) if (!p.out && !p.next && p.seamAt - c.currentTime <= 1.2) this._seam(p);
+    if (!this._players.length) { clearInterval(this._songTimer); this._songTimer = null; }
+  },
+  // at the loop end, the next pass starts at the loop start and the two crossfade
+  _seam(p) {
+    p.next = true;
+    const T = this.TRACKS[p.mode], t = this._trk[p.mode], at = Math.max(p.seamAt, this.ctx.currentTime + 0.02);
+    const q = this._startInstance(p.mode, at, T.loopStart + t.shift, T.xfade);
+    this._eqRamp(p.g.gain, at, T.xfade, p.vol, 0.0001);
+    try { p.src.stop(at + T.xfade + 0.05); } catch (e) { }
+    p.out = true;
+    return q;
+  },
+  _fadeSongs(dur) {
+    const now = this.ctx ? this.ctx.currentTime : 0;
+    for (const p of this._players) {
+      if (p.out) continue;
+      p.out = p.next = true;
+      const gp = p.g.gain, v = Math.max(0.0001, gp.value);
+      gp.cancelScheduledValues(now); gp.setValueAtTime(v, now); gp.linearRampToValueAtTime(0.0001, now + dur);
+      try { p.src.stop(now + dur + 0.05); } catch (e) { }
+    }
+  },
+
+  /* ================= music: step sequencer (fallback) ================= */
   _midi(n) { return 440 * Math.pow(2, (n - 69) / 12); },
   startMusic(mode) {
     if (!this.ctx || this._musicMode === mode) return;
-    this.stopMusic();
-    if (mode === 'day') this._songPass = (this._songPass || 0) + 1;   // a different lead instrument each day
-    this._musicMode = mode; this._musicStep = 0; this._musicNext = this.ctx.currentTime + 0.1;
+    this._musicMode = mode;
+    if (mode === 'day') this._songPass = (this._songPass || 0) + 1;   // a different synth lead each day
+    const t = this._trk[mode];
+    if (this.TRACKS[mode] && t && !t.failed) {
+      this._stopSynth();
+      // the song is normally decoded by now; if it is slow, the synth fills in rather than silence
+      const fb = setTimeout(() => { if (this._musicMode === mode && !this._players.some(p => p.mode === mode && !p.out)) this._startSynth(); }, 6000);
+      this._decodeTrack(mode)
+        .then(() => { clearTimeout(fb); if (this._musicMode === mode) { this._stopSynth(); this._playSong(mode); } })
+        .catch(() => { clearTimeout(fb); if (this._musicMode === mode) this._startSynth(); });
+      return;
+    }
+    this._fadeSongs(1.5); this._startSynth();
+  },
+  _startSynth() {
+    this._stopSynth();
+    this._musicStep = 0; this._musicNext = this.ctx.currentTime + 0.1;
     this._musicTimer = setInterval(() => this._scheduleMusic(), 70);
   },
-  stopMusic() { if (this._musicTimer) clearInterval(this._musicTimer); this._musicTimer = null; this._musicMode = null; },
+  _stopSynth() { if (this._musicTimer) clearInterval(this._musicTimer); this._musicTimer = null; },
+  stopMusic() { this._stopSynth(); this._fadeSongs(0.3); this._musicMode = null; },
   _scheduleMusic() {
     const c = this.ctx; if (!c) return;
     if (!this.music || this.music.context !== c) { this.stopMusic(); return; }
@@ -808,3 +926,5 @@ const MUSIC = (() => {
   };
   return { day, night };
 })();
+
+Sfx._preloadTracks();
