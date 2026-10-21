@@ -44,11 +44,13 @@ class Game {
   /* The row of animals on the start screen is drawn with drawSpecies() — the
      same code that draws them in the game — so the front page always shows the
      real thing, and so does the app icon (see tools/make-icons.html). */
-  _drawSplashAnimals() {
-    const c = document.getElementById('splash-animals');
+  // Redrawn every frame while the start screen is up: the animals hop in a
+  // little wave and blink, so the very first thing a child sees is alive.
+  _drawSplashAnimals(t = 0) {
+    const c = this.$splashCanvas || (this.$splashCanvas = document.getElementById('splash-animals'));
     if (!c) return;
     const W = 760, H = 150, dpr = Math.min(2, window.devicePixelRatio || 1);
-    c.width = W * dpr; c.height = H * dpr;
+    if (c.width !== W * dpr) { c.width = W * dpr; c.height = H * dpr; }
     const ctx = c.getContext('2d');
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, W, H);
@@ -63,16 +65,23 @@ class Game {
     ctx.restore();
 
     const cast = [['cow', 0], ['horse', 0], ['pig', 0], ['sheep', 0], ['chicken', 1], ['duck', 0], ['cat', 0]];
-    const pose = { t: 0, dir: 1, moving: false, run: false, phase: 0, sleeping: false, graze: false, peck: false, happy: true, talk: 0, blink: false, inWater: false, action: null };
     const gap = W / cast.length, baseY = H - 18;
     cast.forEach(([sp, v], i) => {
       const cfg = SPECIES[sp];
       // even up the row without losing every hint of who is bigger
       const shown = 78 * Math.pow(cfg.h / 70, 0.4);
       const k = shown / cfg.h;
+      // a hop travels along the row every few seconds, squashing on landing
+      const ph = ((t * 0.85 - i * 0.16) % 3 + 3) % 3;
+      const hop = ph < 0.42 ? Math.sin(ph / 0.42 * Math.PI) * 16 : 0;
+      const land = ph >= 0.42 && ph < 0.62 ? Math.sin((ph - 0.42) / 0.2 * Math.PI) * 0.12 : 0;
+      const pose = { t: t + i * 0.37, dir: 1, moving: false, run: false, phase: 0, sleeping: false, graze: false, peck: false, happy: hop > 0,
+        talk: hop > 6 ? 0.6 : 0, blink: ((t * 0.6 + i * 0.29) % 3.5) < 0.12, inWater: false, action: null };
       ctx.save();
       ctx.translate(gap * (i + 0.5), baseY);
-      ctx.scale(k, k);
+      D.shadow(ctx, 0, 0, 30 * (1 - hop / 40), 6, 0.12);
+      ctx.translate(0, -hop);
+      ctx.scale(k * (1 + land), k * (1 - land));
       drawSpecies(ctx, sp, cfg.variants[v], pose);
       ctx.restore();
     });
@@ -125,13 +134,19 @@ class Game {
     this.$farmUI = $('farm-ui');
     $('star-pill').textContent = '⭐ ' + this.stars;
   }
-  addStars(n) {
+  // x, y: where on the stage the star was earned — it flies from there to the counter
+  addStars(n, x = 640, y = 380) {
+    if (this._shownStars == null) this._shownStars = this.stars;
     this.stars += n;
     try { localStorage.setItem('sbf_stars', String(this.stars)); } catch (e) { }
     const p = document.getElementById('star-pill');
-    p.textContent = '⭐ ' + this.stars;
-    p.classList.remove('bump'); void p.offsetWidth; p.classList.add('bump');
-    Sfx.play('sparkle', 0.7);
+    Sfx.play('ding', 0.35);
+    for (let i = 0; i < n; i++) U.flyStar(this.stage, p, x, y, i * 170, () => {
+      this._shownStars = Math.min(this.stars, this._shownStars + 1);
+      p.textContent = '⭐ ' + this._shownStars;
+      p.classList.remove('bump'); void p.offsetWidth; p.classList.add('bump');
+      Sfx.play('sparkle', 0.55);
+    });
   }
   start() {
     document.getElementById('splash').classList.add('hidden');
@@ -274,8 +289,10 @@ class Game {
   }
 
   /* ----- scene transitions ----- */
-  fade(cb) {
+  // x, y: where on the stage the iris closes — on the thing the child tapped
+  fade(cb, x = 640, y = 400) {
     const f = document.getElementById('fader');
+    f.style.setProperty('--ix', x + 'px'); f.style.setProperty('--iy', y + 'px');
     f.classList.add('on');
     setTimeout(() => { cb(); setTimeout(() => f.classList.remove('on'), 60); }, 380);
   }
@@ -291,7 +308,7 @@ class Game {
       this.hideCard();
       if (this.mode === 'night') this.narrate('Shhh... all the animals are sleeping in the barn. Tap them to count them!');
       else this.narrate('The barn is empty right now — everyone is playing outside! Tap the moon button to make it night time.');
-    });
+    }, 640, 300);
   }
   exitBarn() {
     if (this.sceneName === 'farm') return;
@@ -299,14 +316,14 @@ class Game {
     this.fade(() => {
       this.sceneName = 'farm'; this.$barnUI.classList.add('hidden'); this._updateFarmUI();
       Sfx.setMuffled(false); this.barn.stopQuiz(); this.hideCard();
-    });
+    }, 110, 110);
   }
 
   /* ----- learning helpers ----- */
   introduce(a) {
     // single tap: name + sound
     const cfg = a.cfg;
-    a.talk(1); Sfx.play(cfg.sound, 1, a.x); a.say(cfg.says, 2);
+    a.talk(1); a.poke(); Sfx.play(cfg.sound, 1, a.x); a.say(cfg.says, 2);
     this.showCard(a);
     const article = /^[aeiou]/i.test(cfg.name) ? 'an' : 'a';
     const sayText = cfg.says.replace(/!/g, '');
@@ -315,7 +332,7 @@ class Game {
   trick(a) {
     const cfg = a.cfg;
     Voice.cancel();
-    a.doTrick();
+    a.doTrick(); a.poke(1.3);
     a.say(cfg.trickText, 1.8);
     const delay = ['munch', 'splash'].includes(cfg.trickSound) ? 500 : 0;
     setTimeout(() => Sfx.play(cfg.trickSound, 1, a.x), delay);
@@ -351,6 +368,7 @@ class Game {
     const colors = ['#ff6b6b', '#ff9f43', '#ffd23f', '#48c774', '#54a0ff', '#a29bfe', '#fd79a8', '#00cec9'];
     for (let n = 1; n <= maxN; n++) {
       const b = document.createElement('button'); b.className = 'num-btn'; b.textContent = n; b.style.background = colors[(n - 1) % colors.length];
+      b.style.animationDelay = (n - 1) * 0.05 + 's';
       b.addEventListener('click', () => cb(n)); box.appendChild(b);
     }
     this.$quiz.classList.remove('hidden'); this.$hint.classList.add('hidden');
@@ -367,6 +385,8 @@ class Game {
     let dt = (ts - this.lastTime) / 1000; this.lastTime = ts;
     if (dt > 0.1) dt = 0.1;
     this.t += dt;
+    const sp = this.$splash || (this.$splash = document.getElementById('splash'));
+    if (sp && !sp.classList.contains('hidden')) this._drawSplashAnimals(this.t);
     if (this.started) {
       // auto day/night cycle
       if (this.autoCycle) {
@@ -393,4 +413,11 @@ class Game {
   }
 }
 
-window.addEventListener('load', () => { window.game = new Game(); });
+window.addEventListener('load', () => {
+  // Some canvas text (the barn's name plates) is baked into pre-rendered backgrounds,
+  // so give the game font a moment to arrive first — but never hold the game up for it.
+  // (not `if (!window.game)`: the canvas has id="game", so window.game is already that element)
+  let booted = false; const go = () => { if (booted) return; booted = true; window.game = new Game(); };
+  if (document.fonts && document.fonts.load) Promise.race([document.fonts.load('700 24px Fredoka'), new Promise(r => setTimeout(r, 1500))]).then(go, go);
+  else go();
+});

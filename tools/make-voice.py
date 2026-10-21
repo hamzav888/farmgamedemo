@@ -167,7 +167,10 @@ def main():
         return
     os.makedirs(OUT, exist_ok=True)
     # clips are named by engine+voice+text, so switching voice never mixes old and new
-    tag = hashlib.sha1(f'{a.engine}:{voice}'.encode()).hexdigest()[:4]
+    # bump RENDER_VERSION when the finishing chain changes: new names force a clean re-render
+    # (and the CDN's long cache on voice/ can never serve an old take)
+    RENDER_VERSION = {'kokoro': 2}.get(a.engine, 1)
+    tag = hashlib.sha1((f'{a.engine}:{voice}' + (f':v{RENDER_VERSION}' if RENDER_VERSION > 1 else '')).encode()).hexdigest()[:4]
     quality = 'neural' if a.engine != 'say' or '(Premium)' in voice or '(Enhanced)' in voice else 'standard'
     manifest = {'engine': a.engine, 'voice': voice, 'quality': quality, 'lines': {}}
     done = 0; pending = []

@@ -46,6 +46,12 @@
       ]
     },
     {
+      "source": "/fonts/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=2592000" }
+      ]
+    },
+    {
       "source": "/voice/manifest.json",
       "headers": [
         { "key": "Cache-Control", "value": "no-cache" }

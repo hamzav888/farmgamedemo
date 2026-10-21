@@ -11,6 +11,7 @@
 <title>Sunny Barn Farm — Mini-Games 🐄</title>
 <link rel="icon" href="../icons/favicon-32.png" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
+<link rel="preload" href="../fonts/fredoka.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="../css/style.css">
 <link rel="stylesheet" href="mg.css">
 </head>
@@ -88,7 +89,10 @@
 <script src="games/pig-bath.js"></script>
 <script>
   window.addEventListener('load', () => {
-    window.mini = new MiniHost([VeggiePatch, TractorRide, RunawayPiglets, HideSeek, StarAnimals, FarmBand, PigBath]);
+    // the previews are canvas renders with text in them: let the game font arrive first
+    let booted = false; const go = () => { if (booted) return; booted = true; window.mini = new MiniHost([VeggiePatch, TractorRide, RunawayPiglets, HideSeek, StarAnimals, FarmBand, PigBath]); };
+    if (document.fonts && document.fonts.load) Promise.race([document.fonts.load('700 24px Fredoka'), new Promise(r => setTimeout(r, 1500))]).then(go, go);
+    else go();
   });
 </script>
 </body>

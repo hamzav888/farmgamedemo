@@ -203,6 +203,12 @@ Other free voices: `af_bella`, `af_sarah`, `bf_emma`, `bf_isabella`. Setup (once
 downloadable in System Settings and then used with `--engine say --voice "Ava (Premium)"`.
 Paid services (`--engine openai` / `--engine elevenlabs`) are supported too but not needed.
 
+Every clip is finished like studio dialogue: silence trimmed so the voice answers a tap within
+~20 ms, each line levelled to the same loudness (±0.4 dB across all 506), peaks kept clear of
+clipping. Words the model misreads are fixed in `tools/tts/kokoro_batch.py` — *"Shhh"* is given
+as phonemes (every spelling was read out as the letters "S-H-H-H"), and the goat's *"Meh-eh-eh"*
+is re-spelt so it isn't read "meh-ay-ay". Subtitles keep the original text.
+
 (`--dry-run` lists the lines. The line list in the tool mirrors every `narrate()` in the game;
 when you add a line in the game, add it there too and re-run — only missing clips are rendered.)
 
@@ -212,7 +218,8 @@ when you add a line in the game, add it there too and re-run — only missing cl
 index.html               page + HUD
 manifest.webmanifest     installable-app metadata
 sw.js                    offline cache
-css/style.css            kid-friendly UI styles
+css/style.css            kid-friendly UI styles (+ the polish layer: glossy buttons, pop-ins, iris wipe)
+fonts/                   Fredoka, the game's rounded display face (SIL OFL, self-hosted so it works offline)
 icons/                   app icons + favicons (generated — see tools/)
 js/util.js               helpers + canvas drawing primitives
 js/audio.js              Web Audio synth: formant animal calls, the two songs + instruments, stereo, reverb, ambience

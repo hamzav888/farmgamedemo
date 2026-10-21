@@ -3,9 +3,18 @@ const S = {
   /* ----- ground / grass texture (pre-rendered) ----- */
   // A warm sun wash in the top-left and a soft dark edge all round. Pre-rendered
   // once into a canvas, so the per-frame cost is a single drawImage.
-  makeVignette(w, h) {
+  makeVignette(w, h, kind = 'day') {
     const c = document.createElement('canvas'); c.width = w; c.height = h;
     const x = c.getContext('2d');
+    if (kind === 'night') {   // a pale moonlit wash from the moon's corner, and deeper blue edges
+      const cool = x.createRadialGradient(w * 0.34, h * 0.08, 0, w * 0.34, h * 0.08, h * 1.1);
+      cool.addColorStop(0, 'rgba(190,210,255,0.16)'); cool.addColorStop(0.5, 'rgba(160,185,255,0.04)'); cool.addColorStop(1, 'rgba(150,175,255,0)');
+      x.fillStyle = cool; x.fillRect(0, 0, w, h);
+      const dk = x.createRadialGradient(w / 2, h / 2, h * 0.38, w / 2, h / 2, h * 0.92);
+      dk.addColorStop(0, 'rgba(6,10,36,0)'); dk.addColorStop(1, 'rgba(6,10,36,0.42)');
+      x.fillStyle = dk; x.fillRect(0, 0, w, h);
+      return c;
+    }
     const warm = x.createRadialGradient(w * 0.34, h * 0.08, 0, w * 0.34, h * 0.08, h * 1.15);
     warm.addColorStop(0, 'rgba(255,240,170,0.22)');
     warm.addColorStop(0.45, 'rgba(255,225,150,0.06)');
@@ -530,7 +539,7 @@ const S = {
   },
   namePlate(ctx, x, y, text) {
     ctx.save();
-    ctx.font = 'bold 18px "Comic Sans MS","Chalkboard SE","Segoe UI Rounded",sans-serif';
+    ctx.font = 'bold 18px "Fredoka","Comic Sans MS","Chalkboard SE","Segoe UI Rounded",sans-serif';
     const w = ctx.measureText(text).width + 30;
     D.fillRR(ctx, x - w / 2, y - 15, w, 30, 6, '#f5e6c8', OL(), 2.5);
     D.circle(ctx, x - w / 2 + 8, y, 2.5, '#636e72'); D.circle(ctx, x + w / 2 - 8, y, 2.5, '#636e72');

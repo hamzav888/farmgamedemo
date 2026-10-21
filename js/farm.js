@@ -34,7 +34,7 @@ class FarmScene {
     grad.addColorStop(0, 'rgba(230,255,140,0.9)'); grad.addColorStop(1, 'rgba(220,255,120,0)');
     fgc.fillStyle = grad; fgc.fillRect(0, 0, 24, 24);
     this.fireflySprite = fg;
-    this.vignette = S.makeVignette(FARM.W, FARM.H);
+    this.vignette = S.makeVignette(FARM.W, FARM.H); this.vignetteNight = S.makeVignette(FARM.W, FARM.H, 'night');
     this._buildBackground();
     this._buildProps();
     this._buildAnimals();
@@ -394,7 +394,9 @@ class FarmScene {
     for (const a of this.animals) a.drawBubble(ctx);
     for (const n of this.nightAnimals) n.drawBubble(ctx);
     // warm sun wash + soft edge, over the scene but under the sky objects
-    ctx.drawImage(this.vignette, 0, 0);
+    if (dark < 0.999) { ctx.globalAlpha = 1 - dark; ctx.drawImage(this.vignette, 0, 0); }
+    if (dark > 0.001) { ctx.globalAlpha = dark; ctx.drawImage(this.vignetteNight, 0, 0); }
+    ctx.globalAlpha = 1;
     // sun / moon
     if (dark < 0.5) { ctx.save(); ctx.globalAlpha = 1 - dark * 2; S.sun(ctx, 440, 62, t); ctx.restore(); }
     else {
@@ -446,7 +448,7 @@ class FarmScene {
       L.state = 'done';
       this.game.trick(a);
       Sfx.play('success', 0.85); this.sparkle(a.x, a.y - 40, 18);
-      this.game.addStars(1);
+      this.game.addStars(1, a.x, a.y - 50);
       this.game.narrate(`Yes! The ${a.cfg.name.toLowerCase()} says ${a.cfg.says.replace(/!/g, '')}! Well done!`,
         { onend: () => { if (this.listen) this.listen.nextT = 1.1; } });
     } else {
@@ -484,7 +486,7 @@ class FarmScene {
       Sfx.play('egg'); Sfx.play('count', 0.7);
       this.sparkle(e.x, e.y - 12, 14);
       if (n >= this.eggHunt.total) {
-        Sfx.play('success', 0.9); this.game.addStars(2);
+        Sfx.play('success', 0.9); this.game.addStars(2, e.x, e.y - 20);
         for (let i = 0; i < 4; i++) setTimeout(() => this.sparkle(U.rand(320, 980), U.rand(220, 520), 14), i * 280);
         this.game.narrate(`${U.numberWord(n)}! You found all ${U.numberWord(n)} eggs! What a good egg hunter!`);
         setTimeout(() => this.stopEggHunt(), 4200);

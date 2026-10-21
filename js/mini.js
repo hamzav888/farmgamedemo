@@ -19,7 +19,7 @@ class MiniScene {
   }
   showCard(emoji, name, sub, ms) { this.app.showCardRaw(emoji, name, sub, ms); }
   hideCard() { this.app.hideCard(); }
-  addStars(n) { this.app.addStars(n); }
+  addStars(n, x, y) { this.app.addStars(n, x, y); }
 
   /* ----- lifecycle (the app does the fading and the HUD) ----- */
   start(GameClass) {

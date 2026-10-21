@@ -233,7 +233,7 @@ class BarnScene {
     const a = this.hitAnimal(x, y);
     if (!a) return;
     // wake up briefly and do the sound
-    a.sleeping = false; a.wakeT = 2.6; a.happy = true; a.talk(1);
+    a.sleeping = false; a.wakeT = 2.6; a.happy = true; a.talk(1); a.poke(1.2);
     Sfx.play(a.cfg.sound, 0.8, a.x); a.say(a.cfg.says, 1.6);
     this.game.showCard(a);
     this.game.narrate(`Shhh! The ${a.cfg.name.toLowerCase()} says ${a.cfg.says.replace('!', '')}... and goes back to sleep.`);
@@ -247,7 +247,7 @@ class BarnScene {
     }
     const n = (this.counts[group] || 0) + 1;
     this.counts[group] = n; a.counted = n; a.glow = 1;
-    Sfx.play('count', 1, a.x); a.talk(0.5);
+    Sfx.play('count', 1, a.x); a.talk(0.5); a.poke(0.8);
     const total = info.list.length;
     const word = U.numberWord(n);
     if (n >= total) {
@@ -255,7 +255,7 @@ class BarnScene {
       this.burst(a.x, a.y - 60);
       const msg = total === 1 ? `One ${info.single}! There is only one ${info.single}. Great counting!` : `${word[0].toUpperCase() + word.slice(1)}! There are ${word} ${info.plural}! Great counting!`;
       this.game.narrate(msg);
-      if (!auto) this.game.addStars(1);
+      if (!auto) { const c = this.cam; this.game.addStars(1, 640 + (a.x - c.x) * c.s, 400 + (a.y - 60 - c.y) * c.s); }
       if (!this.quiz && !this._allDone && this.animals.every(x => x.counted)) { this._allDone = true; setTimeout(() => this.allDone(), 2400); }
     } else {
       this.game.narrate(`${word[0].toUpperCase() + word.slice(1)}...`, { rate: 1.0 });

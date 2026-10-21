@@ -95,7 +95,7 @@ const MiniFX = {
   // a parked animal: no wander zone, so it just stands, blinks and reacts
   makeAnimal(species, x, y, o = {}) { const a = new Animal(species, x, y, { zone: null, ...o }); a.sortY = y; return a; },
   // say + sound + mouth, the way the farm introduces an animal
-  animalSpeak(a, vol = 1) { a.talk(1); Sfx.play(a.cfg.sound, vol, a.x); a.say(a.cfg.says, 1.8); },
+  animalSpeak(a, vol = 1) { a.talk(1); if (a.poke) a.poke(); Sfx.play(a.cfg.sound, vol, a.x); a.say(a.cfg.says, 1.8); },
   hitAnimal(list, x, y) { return Animal.pickHit(list, x, y); },
 
   /* ----- pointer routing: hosts feed raw events in, games get tap + drag ----- */
@@ -198,7 +198,8 @@ class MiniHost {
   fade(cb) {
     const f = document.getElementById('fader');
     f.classList.add('on');
-    setTimeout(() => { cb(); setTimeout(() => f.classList.remove('on'), 60); }, 300);
+    f.style.setProperty('--ix', '640px'); f.style.setProperty('--iy', '400px');
+    setTimeout(() => { cb(); setTimeout(() => f.classList.remove('on'), 60); }, 380);
   }
 
   /* ----- audio ----- */
@@ -236,15 +237,22 @@ class MiniHost {
     $('star-pill-hub').textContent = '⭐ ' + this.stars;
   }
   setTitle(text) { this.$title.textContent = text; }
-  addStars(n) {
+  addStars(n, x = 640, y = 380) {
+    if (this._shownStars == null) this._shownStars = this.stars;
     this.stars += n;
     try { localStorage.setItem('sbf_stars', String(this.stars)); } catch (e) { }
-    ['star-pill', 'star-pill-hub'].forEach(id => {
-      const p = document.getElementById(id); if (!p) return;
-      p.textContent = '⭐ ' + this.stars;
-      p.classList.remove('bump'); void p.offsetWidth; p.classList.add('bump');
+    const hudUp = !document.getElementById('hud').classList.contains('hidden');
+    const target = document.getElementById(hudUp ? 'star-pill' : 'star-pill-hub');
+    Sfx.play('ding', 0.35);
+    for (let i = 0; i < n; i++) U.flyStar(this.stage, target, x, y, i * 170, () => {
+      this._shownStars = Math.min(this.stars, this._shownStars + 1);
+      ['star-pill', 'star-pill-hub'].forEach(id => {
+        const p = document.getElementById(id); if (!p) return;
+        p.textContent = '⭐ ' + this._shownStars;
+        p.classList.remove('bump'); void p.offsetWidth; p.classList.add('bump');
+      });
+      Sfx.play('sparkle', 0.55);
     });
-    Sfx.play('sparkle', 0.7);
   }
   showCard(emoji, name, subHtml, ms = 3200) {
     document.getElementById('card-emoji').textContent = emoji;

@@ -567,6 +567,8 @@ class Animal {
   }
   headPos() { const [hx, hy] = this.cfg.head, k = this.sleeping ? 0.72 : 1; return { x: this.x + this.dir * hx * this.scale * 0.6, y: this.y - hy * this.scale * k }; }
   say(text, dur = 1.8) { this.bubble = { text, t: 0, dur }; }
+  // a springy squash-and-stretch, anchored at the feet — the "boing" that makes a tap feel alive
+  poke(k = 1) { this._pokeAt = performance.now(); this._pokeK = k; }
   talk(d = 1) { this.talkT = Math.max(this.talkT, d); }
   doTrick() {
     const type = this.cfg.trick;
@@ -656,6 +658,10 @@ class Animal {
     ctx.save();
     ctx.translate(this.x, this.y);
     if (this.glow > 0) { ctx.save(); ctx.globalAlpha = this.glow; D.fillEll(ctx, 0, -this.cfg.h * this.scale * 0.45, this.cfg.w * this.scale * 0.6, this.cfg.h * this.scale * 0.6, 'rgba(255,240,120,0.45)'); ctx.restore(); }
+    if (this._pokeAt) {
+      const e = (performance.now() - this._pokeAt) / 1000;
+      if (e < 0.7) { const q = Math.sin(e * 24) * Math.exp(-e * 6.5) * 0.15 * this._pokeK; ctx.scale(1 + q, 1 - q); }
+    }
     ctx.scale(this.dir * this.scale, this.scale);
     drawSpecies(ctx, this.species, this.variant, this.animState(t, extra));
     ctx.restore();

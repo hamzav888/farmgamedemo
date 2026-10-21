@@ -1,11 +1,18 @@
 /* ---------- Sunny Barn Farm styles ---------- */
+/* Fredoka: a rounded display face made for exactly this kind of game.
+   SIL Open Font License (fonts/OFL.txt); self-hosted so the game stays offline-capable. */
+@font-face {
+  font-family: 'Fredoka';
+  src: url('../fonts/fredoka.woff2') format('woff2');
+  font-weight: 400 700; font-style: normal; font-display: swap;
+}
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
 html, body {
   margin: 0; padding: 0; height: 100%;
   background: #1c3a5c;
   overflow: hidden;
-  font-family: "Comic Sans MS", "Chalkboard SE", "Marker Felt", "Segoe UI Rounded", "Arial Rounded MT Bold", sans-serif;
+  font-family: "Fredoka", "Comic Sans MS", "Chalkboard SE", "Segoe UI Rounded", "Arial Rounded MT Bold", sans-serif;
   user-select: none; -webkit-user-select: none;
   touch-action: none;
 }
@@ -154,11 +161,17 @@ html, body {
 @keyframes bounce { 0%,100% { transform: translateX(-50%) translateY(0);} 50% { transform: translateX(-50%) translateY(-12px);} }
 
 /* ---------- Fader ---------- */
-#fader {
-  position: absolute; inset: 0; background: #000; opacity: 0; pointer-events: none;
-  transition: opacity .35s ease; z-index: 20;
+/* Cartoon iris wipe: a circle closes on the thing you tapped, then opens on the
+   new scene. The "hole" is a huge circle whose box-shadow is the curtain. */
+#fader { position: absolute; inset: 0; pointer-events: none; z-index: 20; overflow: hidden; --ix: 640px; --iy: 400px; }
+#fader::before {
+  content: ''; position: absolute; left: var(--ix); top: var(--iy);
+  width: 3400px; height: 3400px; border-radius: 50%; transform: translate(-50%, -50%);
+  box-shadow: 0 0 0 3400px #1c3a5c;
+  transition: width .42s cubic-bezier(.2,.7,.3,1), height .42s cubic-bezier(.2,.7,.3,1);
 }
-#fader.on { opacity: 1; pointer-events: auto; }
+#fader.on { pointer-events: auto; }
+#fader.on::before { width: 0; height: 0; transition: width .36s cubic-bezier(.6,0,.8,.4), height .36s cubic-bezier(.6,0,.8,.4); }
 
 /* ---------- Splash ---------- */
 #splash {
@@ -231,3 +244,63 @@ body.compact .howto { font-size: 27px; }
 body.compact .howto li span { font-size: 36px; }
 body.compact #btn-start { font-size: 44px; }
 body.compact .tiny { font-size: 24px; }
+
+/* ================= polish =================
+   The small things that make it feel like a finished game: buttons with a
+   glossy top and a springy press, things that pop in rather than appear,
+   stars that fly to the counter. */
+
+/* glossy highlight: the top of every button catches the light */
+.hud-btn, .big-btn, #btn-start, .num-btn { position: relative; }
+.hud-btn::after, .big-btn::after, #btn-start::after, .num-btn::after {
+  content: ''; position: absolute; left: 14%; right: 14%; top: 4px; height: 40%;
+  border-radius: 999px; pointer-events: none;
+  background: linear-gradient(rgba(255,255,255,.55), rgba(255,255,255,0));
+}
+.hud-btn::after { left: 20%; right: 20%; top: 5px; height: 36%; }
+
+/* springy press; a gentle lift on hover where there is a mouse */
+.hud-btn, .big-btn, .num-btn { transition: transform .14s cubic-bezier(.2,1.8,.4,1), filter .14s, box-shadow .14s; }
+.hud-btn:active, .big-btn:active, .num-btn:active { transform: translateY(4px) scale(.95); }
+@media (hover: hover) {
+  .hud-btn:hover, .big-btn:hover, .num-btn:hover { transform: translateY(-3px) scale(1.04); filter: brightness(1.06); }
+  .hud-btn:hover:active, .big-btn:hover:active, .num-btn:hover:active { transform: translateY(4px) scale(.95); }
+  #btn-start:hover { filter: brightness(1.07); }
+}
+
+/* the star that flies to the counter */
+.fly-star {
+  position: absolute; width: 48px; height: 48px; margin: -24px 0 0 -24px;
+  font-size: 40px; line-height: 48px; text-align: center;
+  z-index: 19; pointer-events: none; will-change: transform;
+  filter: drop-shadow(0 3px 3px rgba(0,0,0,.3)) drop-shadow(0 0 10px rgba(255,220,90,.8));
+}
+#star-pill.bump { animation: starpop .45s cubic-bezier(.2,1.8,.4,1); }
+@keyframes starpop { 40% { transform: scale(1.35) rotate(-8deg); } }
+
+/* start screen: the box springs up, the title drops in, the tips slide in one by one */
+.splash-box { animation: boxIn .55s cubic-bezier(.2,1.5,.4,1) backwards; }
+@keyframes boxIn { from { transform: scale(.72) translateY(40px); opacity: 0; } }
+.splash-box h1 { animation: titleDrop .75s cubic-bezier(.2,1.7,.4,1) .12s backwards; }
+@keyframes titleDrop { from { transform: translateY(-46px) scale(.8); opacity: 0; } }
+#splash-animals { animation: fadeUp .5s ease-out .25s backwards; }
+.howto li { animation: liIn .42s cubic-bezier(.2,1.4,.4,1) backwards; }
+.howto li:nth-child(1) { animation-delay: .34s; } .howto li:nth-child(2) { animation-delay: .40s; }
+.howto li:nth-child(3) { animation-delay: .46s; } .howto li:nth-child(4) { animation-delay: .52s; }
+.howto li:nth-child(5) { animation-delay: .58s; }
+@keyframes liIn { from { transform: translateX(-28px); opacity: 0; } }
+@keyframes fadeUp { from { transform: translateY(14px); opacity: 0; } }
+
+/* quiz numbers pop in in turn (delay set per button in JS); backwards fill so presses still work after */
+.num-btn { animation: numIn .4s cubic-bezier(.2,1.7,.4,1) backwards; }
+@keyframes numIn { from { transform: scale(0) rotate(-20deg); } }
+
+/* the learning card's emoji bounces in; the narrator's subtitle rises */
+#card-emoji { display: inline-block; animation: emojiIn .6s cubic-bezier(.2,1.8,.4,1) .08s backwards; }
+@keyframes emojiIn { from { transform: scale(.2) rotate(-30deg); } }
+#subtitle { animation: subIn .24s ease-out; }
+@keyframes subIn { from { transform: translateX(-50%) translateY(12px); opacity: 0; } }
+
+/* barn and mini-game controls arrive with a little spring */
+#barn-ui:not(.hidden) .big-btn, #mini-ui:not(.hidden) .big-btn, #farm-ui:not(.hidden) .big-btn { animation: btnIn .4s cubic-bezier(.2,1.6,.4,1) .1s backwards; }
+@keyframes btnIn { from { transform: scale(.4); opacity: 0; } }

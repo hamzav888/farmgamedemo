@@ -27,6 +27,24 @@ const U = {
     const f = v => Math.round(U.clamp(amt < 0 ? v * (1 + amt) : v + (255 - v) * amt, 0, 255));
     return `rgb(${f(r)},${f(g)},${f(b)})`;
   },
+  // A ⭐ flies from a point on the 1280x800 stage, arcs up, and lands on the star
+  // counter; onArrive fires when it gets there (or after a timeout, so a hidden
+  // tab can never strand one).
+  flyStar(stage, pill, x, y, delay, onArrive) {
+    if (!stage || !pill || !Element.prototype.animate) { setTimeout(onArrive, delay); return; }
+    const sr = stage.getBoundingClientRect(), pr = pill.getBoundingClientRect(), k = sr.width / 1280 || 1;
+    const tx = (pr.left - sr.left) / k + 24, ty = (pr.top - sr.top + pr.height / 2) / k;
+    const el = document.createElement('div'); el.className = 'fly-star'; el.textContent = '⭐';
+    el.style.left = x + 'px'; el.style.top = y + 'px'; stage.appendChild(el);
+    const dx = tx - x, dy = ty - y;
+    let done = false; const fin = () => { if (done) return; done = true; el.remove(); onArrive(); };
+    const a = el.animate([
+      { transform: 'translate(0,0) scale(.2) rotate(0deg)', opacity: 0 },
+      { transform: `translate(${dx * 0.15}px, ${dy * 0.15 - 110}px) scale(1.5) rotate(140deg)`, opacity: 1, offset: 0.32 },
+      { transform: `translate(${dx}px, ${dy}px) scale(.55) rotate(360deg)`, opacity: 1 }
+    ], { duration: 950, delay, easing: 'cubic-bezier(.5,0,.35,1)', fill: 'both' });
+    a.onfinish = fin; setTimeout(fin, delay + 1700);
+  },
   numberWord(n) {
     return ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve'][n] || String(n);
   }
@@ -104,7 +122,7 @@ const D = {
   },
   cheek(ctx, x, y, r) { D.circle(ctx, x, y, r, 'rgba(255,120,140,0.35)'); },
   text(ctx, str, x, y, size, fill, opts = {}) {
-    const { align = 'center', stroke = null, lw = 4, font = 'bold', baseline = 'middle', family = '"Comic Sans MS","Chalkboard SE","Segoe UI Rounded",sans-serif' } = opts;
+    const { align = 'center', stroke = null, lw = 4, font = 'bold', baseline = 'middle', family = '"Fredoka","Comic Sans MS","Chalkboard SE","Segoe UI Rounded",sans-serif' } = opts;
     ctx.font = `${font} ${size}px ${family}`;
     ctx.textAlign = align; ctx.textBaseline = baseline;
     if (stroke) { ctx.lineJoin = 'round'; ctx.strokeStyle = stroke; ctx.lineWidth = lw; ctx.strokeText(str, x, y); }
@@ -116,7 +134,7 @@ const D = {
     ctx.save();
     ctx.translate(x, y);
     ctx.scale(scale, scale);
-    ctx.font = `bold ${size}px "Comic Sans MS","Chalkboard SE","Segoe UI Rounded",sans-serif`;
+    ctx.font = `bold ${size}px "Fredoka","Comic Sans MS","Chalkboard SE","Segoe UI Rounded",sans-serif`;
     const w = ctx.measureText(str).width + 28, h = size + 22;
     const bx = -w / 2, by = -h - 18;
     ctx.beginPath();
