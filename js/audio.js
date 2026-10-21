@@ -42,7 +42,7 @@ const Sfx = {
     this.amb = c.createGain(); this.amb.gain.value = 1; this.amb.connect(this.ambFilter); this.ambFilter.connect(this.bus);
     this.music = c.createGain(); this.music.gain.value = 0.2; this.music.connect(this.bus);
     // the narrator's recorded clips: a touch of presence, almost no reverb
-    this.voiceBus = c.createGain(); this.voiceBus.gain.value = 1.0;
+    this.voiceBus = c.createGain(); this.voiceBus.gain.value = 1.5;   // the neural clips are more dynamic (lower RMS); this keeps the narrator on top of the music
     const pres = c.createBiquadFilter(); pres.type = 'highshelf'; pres.frequency.value = 3200; pres.gain.value = 2.5;
     this.voiceBus.connect(pres); pres.connect(this.bus);
 
