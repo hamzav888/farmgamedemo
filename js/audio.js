@@ -42,9 +42,18 @@ const Sfx = {
     this.amb = c.createGain(); this.amb.gain.value = 1; this.amb.connect(this.ambFilter); this.ambFilter.connect(this.bus);
     this.music = c.createGain(); this.music.gain.value = 0.2; this.music.connect(this.bus);
     // the narrator's recorded clips: a touch of presence, almost no reverb
-    this.voiceBus = c.createGain(); this.voiceBus.gain.value = 1.2;   // clips are levelled to -18.5 dBFS voiced; this sits the narrator well above the ducked music without leaning on the limiter
-    const pres = c.createBiquadFilter(); pres.type = 'highshelf'; pres.frequency.value = 3200; pres.gain.value = 2.5;
-    this.voiceBus.connect(pres); pres.connect(this.bus);
+    // The narrator should sound like someone reading on the sofa, not a broadcast.
+    // At 0.52 she sits ~-20 dBFS, about 17 dB over the ducked music and a little
+    // over the animals, with peaks near -7 dBFS: room to spare, so phone speakers
+    // are never pushed into crunching. The EQ swaps brightness for warmth: no
+    // rumble, a touch of chest, the shouty band eased, and the fizz neural voices
+    // carry up top rolled off. (Was 1.2 with a +2.5 dB presence shelf: too hot.)
+    this.voiceBus = c.createGain(); this.voiceBus.gain.value = 0.52;
+    let vlast = this.voiceBus;
+    for (const [type, f, q, g] of [['highpass', 90, 0.7, 0], ['peaking', 220, 0.9, 1.5], ['peaking', 3200, 1.0, -2], ['highshelf', 7500, 0.7, -3]]) {
+      const b = c.createBiquadFilter(); b.type = type; b.frequency.value = f; b.Q.value = q; b.gain.value = g; vlast.connect(b); vlast = b;
+    }
+    vlast.connect(this.bus);
 
     // ----- room reverb (a synthesised impulse response: no files needed) -----
     this.verb = c.createConvolver();

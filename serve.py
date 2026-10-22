@@ -38,6 +38,17 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                 f.write(base64.b64decode(body))
             self.send_response(200); self.send_header("Content-Length", "2"); self.end_headers(); self.wfile.write(b"ok")
             return
+        # dev helper: POST /__wav?name=foo with raw WAV bytes saves .tmp/foo.wav (audio A/B renders)
+        if self.path.startswith("/__wav"):
+            import urllib.parse
+            qs = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+            name = "".join(ch for ch in qs.get("name", ["render"])[0] if ch.isalnum() or ch in "-_") or "render"
+            n = int(self.headers.get("Content-Length", 0))
+            os.makedirs(".tmp", exist_ok=True)
+            with open(os.path.join(".tmp", name + ".wav"), "wb") as f:
+                f.write(self.rfile.read(n))
+            self.send_response(200); self.send_header("Content-Length", "2"); self.end_headers(); self.wfile.write(b"ok")
+            return
         # dev helper: POST /__snap?name=foo with a data-URL body saves .tmp/foo.jpg (used for visual testing)
         if self.path.startswith("/__snap"):
             import base64, urllib.parse
