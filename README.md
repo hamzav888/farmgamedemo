@@ -173,17 +173,26 @@ first-sound time, loop start/end, crossfade). Keep the content hash in the file 
 
 ### Effects
 
-* **Animal calls** use *formant synthesis*: a buzzing "voice box" pushed through parallel
-  band-pass filters that imitate a throat and mouth, so the cow's "mmMOO-oo" and the cat's
-  "me-ow" glide like vowels. Every call is pitch-jittered so it is never identical twice.
+* **Real recordings.** Every animal call, the barn door, the tractor horn, the splashes, the
+  squeaky duck and the kids cheering are recordings, in `sfx/`, built by `tools/make-sfx.py`
+  from Apple's iLife/iMovie sound-effect library (installed with iMovie) plus a few freely
+  licensed Wikimedia Commons recordings for the pig, cat, goat and crow (see `CREDITS.md`).
+  Each sound has several takes, all levelled to the same loudness; the game picks a different
+  take each time and nudges the pitch a few percent, so no two moos are identical.
+* **Ambience beds.** Real birdsong by day and real crickets by night, looped seamlessly,
+  with far-off frogs and an owl now and then after dark; the tractor runs on a real diesel
+  whose revs follow the throttle.
+* **Synthesis as the safety net.** `js/audio.js` still carries a synthesised version of every
+  sound (formant "voice boxes" for the animals), which plays until the recordings have
+  arrived or for anything with no recording. `Sfx.play()` returns how long the recording
+  lasts, so an animal's mouth flaps for exactly as long as it calls.
 * **Stereo placement.** `Sfx.play(name, vol, x)` pans by where the animal stands, so a cow on
-  the left of the farm moos from the left; birds sing from different spots along the hedge.
-* **Loudness is measured, not guessed.** `Sfx._trim` holds a per-animal gain measured as max RMS
-  over a 300 ms window, so a chicken and a cow feel equally loud. Retune by measuring.
+  the left of the farm moos from the left.
 * **Room.** A synthesised impulse response; inside the barn the room gets boomier and the outside
   world muffles. A gentle limiter keeps a pile-up of sounds from ever hurting little ears.
-* **Ambience.** Three kinds of songbird, wind that gusts with rustling leaves, the odd bee,
-  crickets at night.
+* **Rebuilding.** `tools/tts/.venv/bin/python -I tools/make-sfx.py` (needs iMovie installed;
+  the Commons sources go in `tools/sfx-src/`). Clips are named by content hash and cached for
+  a year; `sfx/manifest.json` is what the game reads.
 
 ### The narrator's voice
 

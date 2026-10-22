@@ -23,8 +23,8 @@ const MiniHub = {
     try {
       const s = MiniHub._silent(host);
       const g = new GameClass(s); s.game = g;
-      const realPlay = Sfx.play, realPluck = Sfx.pluck, realNoise = Sfx.noise;
-      Sfx.play = () => { }; Sfx.pluck = () => { }; Sfx.noise = () => { };   // posing must be silent too
+      const realPlay = Sfx.play, realPluck = Sfx.pluck, realNoise = Sfx.noise, realLoop = Sfx.loop;
+      Sfx.play = () => 0; Sfx.pluck = () => { }; Sfx.noise = () => { }; Sfx.loop = () => null;   // posing must be silent too
       try {
         g.enter();
         if (GameClass.pose) GameClass.pose(g);
@@ -32,7 +32,7 @@ const MiniHub = {
         const big = document.createElement('canvas'); big.width = 1280; big.height = 800;
         g.render(big.getContext('2d'));
         ctx.drawImage(big, 0, 0, w, h);
-      } finally { Sfx.play = realPlay; Sfx.pluck = realPluck; Sfx.noise = realNoise; if (g.exit) g.exit(); }
+      } finally { Sfx.play = realPlay; Sfx.pluck = realPluck; Sfx.noise = realNoise; Sfx.loop = realLoop; if (g.exit) g.exit(); }
     } catch (e) {
       ctx.fillStyle = '#7ccc5a'; ctx.fillRect(0, 0, w, h);
       ctx.font = `${h * 0.5}px sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';

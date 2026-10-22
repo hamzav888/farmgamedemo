@@ -72,7 +72,7 @@ const MiniFX = {
   celebrate(text, stars = 1, cb) {
     Sfx.play('success', 0.9);
     for (let i = 0; i < 3; i++) this.later(() => this.burst(U.rand(300, 980), U.rand(180, 420)), i * 260);
-    if (stars) this.addStars(stars);
+    if (stars) { this.addStars(stars); this.later(() => Sfx.play('cheer', 0.5), 150); }
     this.narrate(text, { onend: cb });
   },
   _updateEffects(dt) {
@@ -95,7 +95,7 @@ const MiniFX = {
   // a parked animal: no wander zone, so it just stands, blinks and reacts
   makeAnimal(species, x, y, o = {}) { const a = new Animal(species, x, y, { zone: null, ...o }); a.sortY = y; return a; },
   // say + sound + mouth, the way the farm introduces an animal
-  animalSpeak(a, vol = 1) { a.talk(1); if (a.poke) a.poke(); Sfx.play(a.cfg.sound, vol, a.x); a.say(a.cfg.says, 1.8); },
+  animalSpeak(a, vol = 1) { if (a.poke) a.poke(); const d = Sfx.play(a.cfg.sound, vol, a.x); a.talk(Math.min(2.6, d || 1)); a.say(a.cfg.says, Math.max(1.8, d + 0.5)); },
   hitAnimal(list, x, y) { return Animal.pickHit(list, x, y); },
 
   /* ----- pointer routing: hosts feed raw events in, games get tap + drag ----- */

@@ -233,8 +233,8 @@ class BarnScene {
     const a = this.hitAnimal(x, y);
     if (!a) return;
     // wake up briefly and do the sound
-    a.sleeping = false; a.wakeT = 2.6; a.happy = true; a.talk(1); a.poke(1.2);
-    Sfx.play(a.cfg.sound, 0.8, a.x); a.say(a.cfg.says, 1.6);
+    a.sleeping = false; a.wakeT = 2.6; a.happy = true; a.poke(1.2);
+    const d = Sfx.play(a.cfg.sound, 0.8, a.x); a.talk(Math.min(2.6, d || 1)); a.say(a.cfg.says, Math.max(1.6, d + 0.4));
     this.game.showCard(a);
     this.game.narrate(`Shhh! The ${a.cfg.name.toLowerCase()} says ${a.cfg.says.replace('!', '')}... and goes back to sleep.`);
   }
@@ -262,7 +262,7 @@ class BarnScene {
     }
   }
   allDone() {
-    Sfx.play('firework'); Sfx.play('success', 1);
+    Sfx.play('firework'); Sfx.play('success', 1); Sfx.play('cheer', 0.6);
     for (let i = 0; i < 5; i++) setTimeout(() => this.burst(U.rand(300, 1000), U.rand(200, 450)), i * 350);
     this.game.addStars(3);
     this.game.narrate('Hooray! You counted EVERY animal in the barn! Three gold stars for you!');

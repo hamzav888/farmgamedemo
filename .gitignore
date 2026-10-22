@@ -6,3 +6,6 @@ __pycache__/
 # free neural TTS toolchain (tools/make-voice.py --engine kokoro): environment + model, not source
 tools/tts/.venv/
 tools/tts/models/
+
+# downloaded source recordings for tools/make-sfx.py (the built clips in sfx/ are committed)
+tools/sfx-src/

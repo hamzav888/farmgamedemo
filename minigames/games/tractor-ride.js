@@ -23,6 +23,7 @@ class TractorRide {
     this.engineT = 0; this.splashT = 0; this.barkT = 0; this.idleT = 0;
   }
   enter() {
+    this.engine = Sfx.loop('engine', { gain: 0.12, rate: 0.8 });   // a real diesel, ticking over until the throttle opens
     this._placeBales();
     const B = TractorRide.BOUNDS;
     for (let i = 0; i < 3; i++) { const a = new Animal('chicken', 1050 + i * 50, 420 + i * 40, { variant: i, zone: { x1: 940, y1: 380, x2: 1170, y2: 560 }, scale: 1.2 }); this.chickens.push(a); }
@@ -59,9 +60,10 @@ class TractorRide {
       tr.dir = Math.cos(tr.ang) >= 0 ? 1 : -1;
       tr.bounce = Math.abs(Math.sin(this.t * 22)) * 3 * (tr.speed / 175);
       this.engineT -= dt;
-      if (this.engineT <= 0) { this.engineT = 0.11; Sfx.tone({ wave: 'square', f0: 70 + tr.speed * 0.25, f1: 60, dur: 0.09, vol: 0.05, lp: 500 }); }
+      if (this.engine) { const k = U.clamp(tr.speed / 175, 0, 1); this.engine.set(0.82 + k * 0.55, 0.3 + k * 0.45); }   // revs and volume follow the throttle
+      else if (this.engineT <= 0) { this.engineT = 0.11; Sfx.tone({ wave: 'square', f0: 70 + tr.speed * 0.25, f1: 60, dur: 0.09, vol: 0.05, lp: 500 }); }
       if (Math.random() < dt * 9) this.puffs.push({ x: tr.x + tr.dir * 23, y: tr.y - 86, r: 6, t: 0 });
-    } else tr.bounce = 0;
+    } else { tr.bounce = 0; if (this.engine) this.engine.set(0.8, 0.12); }
     if (tr.honk > 0) tr.honk -= dt;
     // the trailer follows, hitched behind
     const hx = tr.x - Math.cos(tr.ang) * 82, hy = tr.y - Math.sin(tr.ang) * 82 * 0.35;
@@ -158,5 +160,5 @@ class TractorRide {
     for (let i = 0; i < n; i++) { ctx.save(); ctx.translate(640 - w / 2 + 29 + i * 58, 146); if (i >= this.loaded) ctx.globalAlpha = 0.22; S.hayBale(ctx, 0, 0, 0.78); ctx.restore(); }
   }
   hover(x, y) { return true; }
-  exit() { }
+  exit() { if (this.engine) { this.engine.stop(); this.engine = null; } }
 }

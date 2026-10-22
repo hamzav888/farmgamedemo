@@ -241,7 +241,7 @@ class FarmScene {
     if (this.callT <= 0) {
       this.callT = U.rand(8, 15);
       const vis = this.animals.filter(a => !a.hidden && !a.action);
-      if (vis.length && !g.speaking) { const a = U.pick(vis); a.talk(0.9); Sfx.play(a.cfg.sound, 0.4, a.x); a.say(a.cfg.says, 1.4); }
+      if (vis.length && !g.speaking) { const a = U.pick(vis); const d = Sfx.play(a.cfg.sound, 0.4, a.x); a.talk(Math.min(2.6, d || 0.9)); a.say(a.cfg.says, Math.max(1.4, d + 0.4)); }
     }
     if (showNight) {
       this.owlT -= dt; if (this.owlT <= 0) { this.owlT = U.rand(10, 18); this.owl.talk(1.2); Sfx.play('owl', 0.5, this.owl.x); this.owl.say('Hoo hoo!', 1.6); }
@@ -440,7 +440,7 @@ class FarmScene {
   _listenPlay() {
     const L = this.listen; if (!L || !L.target) return;
     Sfx.play('listen', 0.7);
-    setTimeout(() => { if (this.listen && this.listen.target) { this.listen.target.talk(1); Sfx.play(this.listen.target.cfg.sound, 1, this.listen.target.x); } }, 480);
+    setTimeout(() => { if (this.listen && this.listen.target) { const a = this.listen.target, d = Sfx.play(a.cfg.sound, 1, a.x); a.talk(Math.min(2.6, d || 1)); } }, 480);
   }
   _listenAnswer(a) {
     const L = this.listen; if (!L || L.state !== 'ask' || !L.target) return true;
@@ -486,7 +486,7 @@ class FarmScene {
       Sfx.play('egg'); Sfx.play('count', 0.7);
       this.sparkle(e.x, e.y - 12, 14);
       if (n >= this.eggHunt.total) {
-        Sfx.play('success', 0.9); this.game.addStars(2, e.x, e.y - 20);
+        Sfx.play('success', 0.9); Sfx.play('cheer', 0.5); this.game.addStars(2, e.x, e.y - 20);
         for (let i = 0; i < 4; i++) setTimeout(() => this.sparkle(U.rand(320, 980), U.rand(220, 520), 14), i * 280);
         this.game.narrate(`${U.numberWord(n)}! You found all ${U.numberWord(n)} eggs! What a good egg hunter!`);
         setTimeout(() => this.stopEggHunt(), 4200);

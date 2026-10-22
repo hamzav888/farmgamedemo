@@ -1,0 +1,308 @@
+{
+ "version": 1,
+ "sounds": {
+  "cow": {
+   "takes": [
+    {
+     "f": "cow-5bbc9f3c.m4a",
+     "d": 2.67
+    }
+   ],
+   "rate": 0.025
+  },
+  "sheep": {
+   "takes": [
+    {
+     "f": "sheep-11186da4.m4a",
+     "d": 0.88
+    },
+    {
+     "f": "sheep-d8ac449b.m4a",
+     "d": 1.14
+    },
+    {
+     "f": "sheep-60a5c91f.m4a",
+     "d": 0.81
+    },
+    {
+     "f": "sheep-8c154a33.m4a",
+     "d": 1.567
+    }
+   ],
+   "rate": 0.04
+  },
+  "rooster": {
+   "takes": [
+    {
+     "f": "rooster-6ae41d15.m4a",
+     "d": 1.95
+    }
+   ],
+   "rate": 0.03
+  },
+  "dog": {
+   "takes": [
+    {
+     "f": "dog-96321dbd.m4a",
+     "d": 0.9
+    },
+    {
+     "f": "dog-bbc3026d.m4a",
+     "d": 0.4
+    },
+    {
+     "f": "dog-eba9c568.m4a",
+     "d": 0.36
+    }
+   ],
+   "rate": 0.05
+  },
+  "chicken": {
+   "takes": [
+    {
+     "f": "chicken-9c72ed6c.m4a",
+     "d": 1.08
+    },
+    {
+     "f": "chicken-5a28d355.m4a",
+     "d": 0.81
+    },
+    {
+     "f": "chicken-ed12e32d.m4a",
+     "d": 0.92
+    },
+    {
+     "f": "chicken-fefeff38.m4a",
+     "d": 0.84
+    }
+   ],
+   "rate": 0.04
+  },
+  "duck": {
+   "takes": [
+    {
+     "f": "duck-a71e33e3.m4a",
+     "d": 1.08
+    },
+    {
+     "f": "duck-53198f82.m4a",
+     "d": 1.14
+    },
+    {
+     "f": "duck-4d48a4cc.m4a",
+     "d": 1.08
+    },
+    {
+     "f": "duck-dde4b937.m4a",
+     "d": 1.14
+    }
+   ],
+   "rate": 0.05
+  },
+  "horse": {
+   "takes": [
+    {
+     "f": "horse-12889e7d.m4a",
+     "d": 1.82
+    }
+   ],
+   "rate": 0.03
+  },
+  "owl": {
+   "takes": [
+    {
+     "f": "owl-45d26d68.m4a",
+     "d": 1.81
+    }
+   ],
+   "rate": 0.02
+  },
+  "frog": {
+   "takes": [
+    {
+     "f": "frog-a215a918.m4a",
+     "d": 1.69
+    },
+    {
+     "f": "frog-3519a565.m4a",
+     "d": 1.55
+    }
+   ],
+   "rate": 0.04
+  },
+  "pig": {
+   "takes": [
+    {
+     "f": "pig-e861d2c2.m4a",
+     "d": 0.655
+    },
+    {
+     "f": "pig-78e4a0d0.m4a",
+     "d": 0.36
+    },
+    {
+     "f": "pig-09f66de3.m4a",
+     "d": 0.334
+    },
+    {
+     "f": "pig-65ea6d20.m4a",
+     "d": 0.203
+    }
+   ],
+   "rate": 0.05
+  },
+  "cat": {
+   "takes": [
+    {
+     "f": "cat-55b50e9c.m4a",
+     "d": 0.871
+    },
+    {
+     "f": "cat-287bd433.m4a",
+     "d": 1.152
+    }
+   ],
+   "rate": 0.04
+  },
+  "kitten": {
+   "takes": [
+    {
+     "f": "kitten-eb1992f6.m4a",
+     "d": 0.9
+    },
+    {
+     "f": "kitten-0d05c75b.m4a",
+     "d": 0.66
+    }
+   ],
+   "rate": 0.05
+  },
+  "goat": {
+   "takes": [
+    {
+     "f": "goat-dcd6662c.m4a",
+     "d": 0.554
+    },
+    {
+     "f": "goat-a7a3d99d.m4a",
+     "d": 0.965
+    },
+    {
+     "f": "goat-e8191828.m4a",
+     "d": 0.671
+    }
+   ],
+   "rate": 0.05
+  },
+  "caw": {
+   "takes": [
+    {
+     "f": "caw-5e66ed5c.m4a",
+     "d": 0.788
+    },
+    {
+     "f": "caw-507e8382.m4a",
+     "d": 0.794
+    },
+    {
+     "f": "caw-338ea997.m4a",
+     "d": 0.459
+    },
+    {
+     "f": "caw-9ec27dfe.m4a",
+     "d": 1.224
+    }
+   ],
+   "rate": 0.05
+  },
+  "honk": {
+   "takes": [
+    {
+     "f": "honk-91d98ce6.m4a",
+     "d": 0.52
+    }
+   ],
+   "rate": 0.06
+  },
+  "door": {
+   "takes": [
+    {
+     "f": "door-17c12f4e.m4a",
+     "d": 2.31
+    }
+   ],
+   "rate": 0.04
+  },
+  "doorClose": {
+   "takes": [
+    {
+     "f": "doorClose-23f5904a.m4a",
+     "d": 1.0
+    }
+   ],
+   "rate": 0.04
+  },
+  "splash": {
+   "takes": [
+    {
+     "f": "splash-430d28fc.m4a",
+     "d": 0.65
+    },
+    {
+     "f": "splash-addce5c1.m4a",
+     "d": 0.7
+    },
+    {
+     "f": "splash-81418ced.m4a",
+     "d": 0.6
+    }
+   ],
+   "rate": 0.06,
+   "layer": true
+  },
+  "squeakToy": {
+   "takes": [
+    {
+     "f": "squeakToy-f963fd2e.m4a",
+     "d": 1.47
+    }
+   ],
+   "rate": 0.05
+  },
+  "cheer": {
+   "takes": [
+    {
+     "f": "cheer-9c36fa2a.m4a",
+     "d": 3.63
+    }
+   ],
+   "rate": 0.03
+  },
+  "giggle": {
+   "takes": [
+    {
+     "f": "giggle-2f3eec2c.m4a",
+     "d": 1.96
+    }
+   ],
+   "rate": 0.03
+  }
+ },
+ "beds": {
+  "day": {
+   "f": "amb-day-0f91bf1e.m4a",
+   "d": 61.8,
+   "gain": 0.45
+  },
+  "night": {
+   "f": "amb-night-12efb8bc.m4a",
+   "d": 7.36,
+   "gain": 0.63
+  },
+  "engine": {
+   "f": "amb-engine-c5d1d6a9.m4a",
+   "d": 7.2,
+   "gain": 1
+  }
+ }
+}

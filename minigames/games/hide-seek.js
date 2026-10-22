@@ -56,7 +56,7 @@ class HideSeek {
     // after a while the hider gives itself away — listen!
     if (hd && !this.busy && this.idleT > 6) {
       this.idleT = 1.5;
-      hd.a.talk(0.8); Sfx.play(hd.a.cfg.sound, 0.7, hd.a.x); this.wiggle[hd.spot.id] = 0.7;
+      const d = Sfx.play(hd.a.cfg.sound, 0.7, hd.a.x); hd.a.talk(Math.min(2.6, d || 0.8)); this.wiggle[hd.spot.id] = 0.7;
     }
   }
 
@@ -66,7 +66,7 @@ class HideSeek {
     const near = this.hiders.find(h => !h.found && (h.a.hit(x, y) || Math.hypot(x - h.spot.x, y - (h.spot.y - 40)) < 80));
     if (!near) { this.h.sparkle(x, y, 4); return; }
     if (near !== hd) {   // the wrong hider: it giggles, we keep looking
-      near.a.talk(0.6); Sfx.play(near.a.cfg.sound, 0.5, near.a.x); this.wiggle[near.spot.id] = 0.5;
+      const d = Sfx.play(near.a.cfg.sound, 0.5, near.a.x); near.a.talk(Math.min(2.6, d || 0.6)); this.wiggle[near.spot.id] = 0.5;
       this.h.narrate(`That's the ${near.a.cfg.name.toLowerCase()}! We are looking for the ${hd.a.cfg.name.toLowerCase()}.`);
       return;
     }

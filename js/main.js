@@ -312,7 +312,7 @@ class Game {
   }
   exitBarn() {
     if (this.sceneName === 'farm') return;
-    Sfx.play('door');
+    Sfx.play('doorClose');
     this.fade(() => {
       this.sceneName = 'farm'; this.$barnUI.classList.add('hidden'); this._updateFarmUI();
       Sfx.setMuffled(false); this.barn.stopQuiz(); this.hideCard();
@@ -323,7 +323,7 @@ class Game {
   introduce(a) {
     // single tap: name + sound
     const cfg = a.cfg;
-    a.talk(1); a.poke(); Sfx.play(cfg.sound, 1, a.x); a.say(cfg.says, 2);
+    a.poke(); const d = Sfx.play(cfg.sound, 1, a.x); a.talk(Math.min(2.6, d || 1)); a.say(cfg.says, Math.max(2, d + 0.5));
     this.showCard(a);
     const article = /^[aeiou]/i.test(cfg.name) ? 'an' : 'a';
     const sayText = cfg.says.replace(/!/g, '');

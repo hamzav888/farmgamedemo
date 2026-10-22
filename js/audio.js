@@ -16,14 +16,14 @@ const Sfx = {
   ctx: null, master: null, sfx: null, amb: null, music: null, ambFilter: null,
   verb: null, verbOut: null, sfxSend: null, musSend: null,
   enabled: true, musicOn: true,
-  _ambNodes: [], _ambMode: null, _ambTimers: {},
+  _ambNodes: [], _ambMode: null, _ambTimers: {}, _bed: null, _synthCrickets: [],
   _musicTimer: null, _musicNext: 0, _musicStep: 0, _musicMode: null,
   _plucks: {}, _duck: false, _muffled: false, _pan: null, voiceBus: null, _windGain: null, _windBase: 0.04,
 
   init() {
     // A context can be closed out from under us (iOS does this after an
     // interruption), which would leave every bus node orphaned. Rebuild if so.
-    if (this.ctx && this.ctx.state === 'closed') { this.ctx = null; this._plucks = {}; this._ambMode = null; this.stopMusic(); }
+    if (this.ctx && this.ctx.state === 'closed') { this.ctx = null; this._plucks = {}; this._ambMode = null; this._bed = null; this.stopMusic(); }
     if (this.ctx) { if (this.ctx.state === 'suspended') this.ctx.resume(); return; }
     const AC = window.AudioContext || window.webkitAudioContext;
     this.ctx = new AC();
@@ -72,6 +72,7 @@ const Sfx = {
     for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
     this.noiseBuf = buf;
     for (const k in this.TRACKS) this._decodeTrack(k).catch(() => { });   // the songs were fetched at page load; decode now
+    this._decodeSfx();
   },
 
   // Decaying stereo noise burst = a believable small-room impulse response.
@@ -308,10 +309,89 @@ const Sfx = {
   // x (0..1280) places the sound in the stereo field: a cow on the left of the
   // farm moos from the left. Every building block honours it via _out().
   play(name, vol = 1, x = null) {
-    if (!this.ctx || !this.enabled) return;
-    const fn = this['s_' + name]; if (!fn) return;
+    if (!this.ctx || !this.enabled) return 0;
     this._pan = x == null ? null : U.clamp((x - 640) / 640, -1, 1) * 0.65;
-    try { fn.call(this, vol * (this._trim[name] || 1)); } finally { this._pan = null; }
+    try {
+      const takes = this._takes(name), dur = takes ? this._playSample(name, takes, vol) : 0;
+      const fn = this['s_' + name];
+      if (fn && (!takes || this._sfx.mf.sounds[name].layer)) fn.call(this, vol * (this._trim[name] || 1));
+      return dur;   // seconds the recording lasts (0 for a synthesised sound), so a mouth can flap for exactly that long
+    } finally { this._pan = null; }
+  },
+
+  /* ================= recorded sound effects =================
+     sfx/manifest.json (built by tools/make-sfx.py) lists real recordings for
+     most sounds: a few takes each, all levelled to one loudness. play() prefers
+     them, picking a different take each time with a little pitch variation,
+     and uses the synthesised version below only until the files have arrived
+     or for sounds that have no recording. The beds (birdsong by day, crickets
+     by night, the tractor's engine) loop seamlessly. */
+  _sfx: { mf: null, ab: {}, buf: {}, beds: {}, bedAb: {}, last: {}, base: '' },
+  _preloadSfx() {
+    const src = (document.currentScript && document.currentScript.src) || '';
+    const S = this._sfx; S.base = src.replace(/js\/audio\.js.*$/, '') + 'sfx/';
+    const grab = f => fetch(S.base + f).then(r => { if (!r.ok) throw new Error(r.status); return r.arrayBuffer(); });
+    fetch(S.base + 'manifest.json', { cache: 'no-cache' }).then(r => r.ok ? r.json() : null).then(mf => {
+      if (!mf || !mf.sounds) return; S.mf = mf;
+      for (const name in mf.sounds) mf.sounds[name].takes.forEach((t, i) => grab(t.f).then(ab => this._gotSfx(S.ab, name, i, ab), () => { }));
+      for (const k in mf.beds) grab(mf.beds[k].f).then(ab => this._gotSfx(S.bedAb, k, 0, ab), () => { });
+    }).catch(() => { });
+  },
+  _gotSfx(store, name, i, ab) { (store[name] = store[name] || [])[i] = ab; if (this.ctx) this._decodeSfx(); },
+  // decode whatever has arrived: at init, and again as each later file lands
+  _decodeSfx() {
+    const S = this._sfx, dec = (store, done) => {
+      for (const name in store) store[name].forEach((ab, i) => {
+        if (!ab) return; store[name][i] = null;
+        this.ctx.decodeAudioData(ab).then(b => done(name, i, b), () => { });
+      });
+    };
+    dec(S.ab, (name, i, b) => { (S.buf[name] = S.buf[name] || [])[i] = b; });
+    dec(S.bedAb, (name, i, b) => { S.beds[name] = b; if (name === this._ambMode && !this._bed) this._startBed(name); });
+  },
+  _takes(name) { const b = this._sfx.buf[name]; if (!b) return null; const t = b.filter(Boolean); return t.length ? t : null; },
+  hasSample(name) { return !!this._takes(name); },
+  _playSample(name, takes, vol) {
+    const spec = this._sfx.mf.sounds[name], S = this._sfx, c = this.ctx;
+    let i = Math.floor(Math.random() * takes.length);
+    if (takes.length > 1 && i === S.last[name]) i = (i + 1) % takes.length;   // never the same take twice running
+    S.last[name] = i;
+    const src = c.createBufferSource(); src.buffer = takes[i];
+    const rate = 1 + (Math.random() * 2 - 1) * (spec.rate || 0.04); src.playbackRate.value = rate;
+    const g = c.createGain(); g.gain.value = vol * (spec.gain || 1);
+    src.connect(g); this._out({}, g); src.start();
+    return takes[i].duration / rate;
+  },
+  // the ambience bed for a mode, crossfading from whatever bed is playing
+  _startBed(mode) {
+    const buf = this._sfx.beds[mode];
+    if (!buf) { this._stopBed(2); return; }
+    if (this._bed && this._bed.mode === mode) return;
+    this._stopBed(2.5);
+    const c = this.ctx, t = c.currentTime, src = c.createBufferSource(); src.buffer = buf; src.loop = true;
+    const on = this._onsetOf(buf);   // skip any decoder priming silence and loop the sound itself
+    src.loopStart = on; src.loopEnd = Math.min(buf.duration, on + this._sfx.mf.beds[mode].d);
+    const g = c.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(this._sfx.mf.beds[mode].gain || 1, t + 2.5);
+    src.connect(g); g.connect(this.amb); src.start(t, on + Math.random() * (src.loopEnd - on) * 0.9);   // from a different spot each time
+    this._bed = { src, gain: g, mode };
+    this._synthCrickets.forEach(n => { try { n.stop(); } catch (e) { } }); this._synthCrickets = [];
+  },
+  _stopBed(fadeSec = 1) {
+    const b = this._bed; if (!b) return; this._bed = null;
+    const t = this.now(), p = b.gain.gain; p.cancelScheduledValues(t); p.setValueAtTime(Math.max(0.0001, p.value), t); p.exponentialRampToValueAtTime(0.0001, t + fadeSec);
+    try { b.src.stop(t + fadeSec + 0.05); } catch (e) { }
+  },
+  // a looping recording a scene can steer (the tractor engine): rate follows the throttle
+  loop(name, o = {}) {
+    const buf = this._sfx.beds[name]; if (!buf || !this.ctx) return null;
+    const c = this.ctx, t = c.currentTime, src = c.createBufferSource(); src.buffer = buf; src.loop = true;
+    const on = this._onsetOf(buf); src.loopStart = on; src.loopEnd = Math.min(buf.duration, on + this._sfx.mf.beds[name].d);
+    const g = c.createGain(); g.gain.value = o.gain == null ? 1 : o.gain; src.playbackRate.value = o.rate || 1;
+    src.connect(g); this._out(o, g); src.start(t, on);
+    return {
+      set: (rate, gain) => { const n = this.now(); src.playbackRate.setTargetAtTime(rate, n, 0.12); g.gain.setTargetAtTime(gain, n, 0.1); },
+      stop: (fade = 0.3) => { const n = this.now(); g.gain.setTargetAtTime(0, n, fade / 3); try { src.stop(n + fade + 0.1); } catch (e) { } }
+    };
   },
 
   // Deep two-part "mmMOOoo" — closed lips, open throat, closed lips again.
@@ -572,6 +652,7 @@ const Sfx = {
   // a soft, kind "mm-mm" rather than a buzzer
   s_oops(v = 1) { [[230, 200, 0, 0.2], [200, 170, 0.22, 0.26]].forEach(([a, b, w, d]) => this.fvoice({ wave: 'triangle', f0: a, curve: [[1, b]], dur: d, vol: 0.12 * v, when: w, dry: 0.3, dryLp: 600, formants: [[400, 3, 1], [900, 5, 0.3]], env: [[0.1, 1], [0.8, 0.8], [1, 0.05]] })); },
   s_door(v = 1) { this.tone({ wave: 'sawtooth', f0: 180, f1: 240, dur: 0.5, vol: 0.06 * v, lp: 600, tremRate: 18, tremDepth: 0.9 }); this.noise({ type: 'lowpass', f: 600, f1: 200, dur: 0.4, vol: 0.12 * v, when: 0.35 }); },
+  s_doorClose(v = 1) { this.s_door(v); },
   s_whoosh(v = 1) { this.noise({ type: 'bandpass', f: 400, f1: 2000, q: 0.7, dur: 0.4, vol: 0.13 * v, at: 0.15 }); },
   s_sparkle(v = 1) { [1568, 2093, 2637, 3136, 3951].forEach((f, i) => this.tone({ wave: 'sine', f0: f, dur: 0.22, vol: 0.06 * v, when: i * 0.05, at: 0.003, rel: 0.2 })); },
   s_listen(v = 1) { [880, 1175].forEach((f, i) => this.tone({ wave: 'sine', f0: f, dur: 0.3, vol: 0.12 * v, when: i * 0.14, rel: 0.24 })); },
@@ -610,12 +691,13 @@ const Sfx = {
     // gentle wind bed for both
     const wind = c.createBufferSource(); wind.buffer = this.noiseBuf; wind.loop = true;
     const wf = c.createBiquadFilter(); wf.type = 'lowpass'; wf.frequency.value = mode === 'day' ? 500 : 350; wf.Q.value = 0.7;
-    const wg = c.createGain(); wg.gain.value = mode === 'day' ? 0.035 : 0.05; this._windGain = wg; this._windBase = wg.gain.value;
+    const wg = c.createGain(); wg.gain.value = (mode === 'day' ? 0.035 : 0.05) * (this._sfx.beds[mode] ? 0.6 : 1); this._windGain = wg; this._windBase = wg.gain.value;
     const wl = c.createOscillator(); wl.frequency.value = 0.13; const wlg = c.createGain(); wlg.gain.value = 0.02;
     wl.connect(wlg); wlg.connect(wg.gain);
     wind.connect(wf); wf.connect(wg); wg.connect(this.amb); wind.start(t); wl.start(t);
     this._ambNodes.push(wind, wl);
-    if (mode === 'night') {
+    this._startBed(mode);
+    if (mode === 'night' && !this._bed) {
       // cricket chorus: two crickets with different chirp rhythms
       [[4300, 21, 2.2], [4900, 17, 1.7]].forEach(([f, trill, gate]) => {
         const o = c.createOscillator(); o.type = 'sine'; o.frequency.value = f;
@@ -630,7 +712,7 @@ const Sfx = {
         const out = c.createGain(); out.gain.value = 0.018;
         o.connect(g1); g1.connect(g2); g2.connect(out); out.connect(this.amb);
         [o, l1, l2, off1, off2].forEach(n => n.start(t));
-        this._ambNodes.push(o, l1, l2, off1, off2);
+        this._ambNodes.push(o, l1, l2, off1, off2); this._synthCrickets.push(o, l1, l2, off1, off2);
       });
     }
   },
@@ -642,14 +724,18 @@ const Sfx = {
       T[key] = (T[key] == null ? U.rand(0.5, min) : T[key]) - dt;
       if (T[key] <= 0) { fn(); T[key] = U.rand(min, max); }
     };
+    const bed = this._bed && this._bed.mode === mode;   // a real recording is playing; no synthetic birds or crickets on top
     if (mode === 'day') {
       // birds sit at different places along the hedge, so they come from the sides
-      tick('bird', 3, 7, () => this.play('bird', ctxInfo.inside ? 0.6 : 1, U.rand(60, 1220)));
-      tick('bird2', 6, 12, () => this.play('bird', 0.5, U.rand(60, 1220)));
+      if (!bed) tick('bird', 3, 7, () => this.play('bird', ctxInfo.inside ? 0.6 : 1, U.rand(60, 1220)));
+      if (!bed) tick('bird2', 6, 12, () => this.play('bird', 0.5, U.rand(60, 1220)));
       tick('gust', 9, 20, () => this._gust());
       tick('bee', 16, 34, () => this.play('bee', 0.7, U.pick([U.rand(60, 300), U.rand(980, 1220)])));
     } else {
-      tick('cricket', 7, 14, () => this.s_cricketChirp());
+      if (!bed) tick('cricket', 7, 14, () => this.s_cricketChirp());
+      // far-off frogs by the pond and an owl in the oak, now and then
+      if (!ctxInfo.inside && this.hasSample('frog')) tick('frogs', 14, 30, () => this.play('frog', 0.22, U.pick([U.rand(40, 260), U.rand(1020, 1240)])));
+      if (!ctxInfo.inside && this.hasSample('owl')) tick('owl', 25, 50, () => this.play('owl', 0.18, U.rand(100, 1180)));
     }
   },
 
@@ -937,3 +1023,4 @@ const MUSIC = (() => {
 })();
 
 Sfx._preloadTracks();
+Sfx._preloadSfx();

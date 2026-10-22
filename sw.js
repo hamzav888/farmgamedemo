@@ -2,7 +2,7 @@
    The game has no network dependencies at all, so caching the shell is enough
    to make it work on a plane, in a car, or on a tablet with the wifi off.
    Bump CACHE when you ship a change, or the old files keep being served. */
-const CACHE = 'sunny-barn-farm-v9';
+const CACHE = 'sunny-barn-farm-v10';
 
 const SHELL = [
   './',
@@ -35,6 +35,7 @@ const SHELL = [
   'music/high-meadow-skip-2c8ba75b.m4a',
   'music/crickets-in-the-tall-grass-b3e204fe.m4a',
   'voice/manifest.json',
+  'sfx/manifest.json',
   'icons/favicon-16.png',
   'icons/favicon-32.png',
   'icons/favicon-48.png',
