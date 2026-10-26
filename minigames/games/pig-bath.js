@@ -102,7 +102,7 @@ class PigBath {
     if (this.scrubT > 30) {
       this.scrubT = 0;
       this.bubbles.push(this._bubble(x + U.rand(-26, 26), y + U.rand(-26, 12), U.rand(8, 22)));
-      Sfx.noise({ type: 'bandpass', f: 1800, q: 0.8, dur: 0.08, vol: 0.05, at: 0.01 });
+      Sfx.play('bubble', 0.6, x);
     }
     if (this.giggleT <= 0) { this.giggleT = U.rand(1.4, 2.6); Sfx.play('pig', 0.3, x); if (Math.random() < 0.25) Sfx.play('giggle', 0.3); this.pig.talk(0.5); this.pig.happy = true; this.h.later(() => { if (!this.busy) this.pig.happy = false; }, 600); }
   }

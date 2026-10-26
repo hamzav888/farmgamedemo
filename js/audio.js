@@ -30,10 +30,12 @@ const Sfx = {
     const c = this.ctx;
     this.master = c.createGain(); this.master.gain.value = 0.9; this.master.connect(c.destination);
 
-    // gentle limiter so a pile-up of sounds never clips or hurts little ears
+    // A safety limiter so a pile-up of sounds never clips or hurts little ears.
+    // It only catches real overloads (from about -13 dBFS up): with the old wide
+    // knee it was squashing the attack of every pop, plop and bell.
     const comp = c.createDynamicsCompressor();
-    comp.threshold.value = -12; comp.knee.value = 22; comp.ratio.value = 4;
-    comp.attack.value = 0.004; comp.release.value = 0.22;
+    comp.threshold.value = -8; comp.knee.value = 10; comp.ratio.value = 8;
+    comp.attack.value = 0.003; comp.release.value = 0.15;
     comp.connect(this.master);
     this.bus = comp;
 
@@ -60,7 +62,7 @@ const Sfx = {
     this.verb.buffer = this._makeIR(1.5, 2.6, 0.32);
     this.verbOut = c.createGain(); this.verbOut.gain.value = 0.9;
     this.verb.connect(this.verbOut); this.verbOut.connect(this.bus);
-    this.sfxSend = c.createGain(); this.sfxSend.gain.value = 0.16;  // open field: a hint of space
+    this.sfxSend = c.createGain(); this.sfxSend.gain.value = 0.10;  // open field: a hint of space (the recordings bring their own)
     this.musSend = c.createGain(); this.musSend.gain.value = 0.10;
     this.sfx.connect(this.sfxSend); this.sfxSend.connect(this.verb);
     const vsend = c.createGain(); vsend.gain.value = 0.05; this.voiceBus.connect(vsend); vsend.connect(this.verb);
@@ -108,7 +110,7 @@ const Sfx = {
   setMuffled(m) {
     this._muffled = m;
     if (this.ambFilter) this.ambFilter.frequency.setTargetAtTime(m ? 700 : 20000, this.now(), 0.3);
-    if (this.sfxSend) this.sfxSend.gain.setTargetAtTime(m ? 0.42 : 0.16, this.now(), 0.3);
+    if (this.sfxSend) this.sfxSend.gain.setTargetAtTime(m ? 0.36 : 0.10, this.now(), 0.3);
     if (this.musSend) this.musSend.gain.setTargetAtTime(m ? 0.26 : 0.10, this.now(), 0.3);
   },
 
@@ -358,7 +360,7 @@ const Sfx = {
     S.last[name] = i;
     const src = c.createBufferSource(); src.buffer = takes[i];
     const rate = 1 + (Math.random() * 2 - 1) * (spec.rate || 0.04); src.playbackRate.value = rate;
-    const g = c.createGain(); g.gain.value = vol * (spec.gain || 1);
+    const g = c.createGain(); g.gain.value = vol * (spec.gain || 1) * (0.89 + Math.random() * 0.22);   // +/- 1 dB, like a real animal
     src.connect(g); this._out({}, g); src.start();
     return takes[i].duration / rate;
   },
@@ -653,6 +655,7 @@ const Sfx = {
   s_oops(v = 1) { [[230, 200, 0, 0.2], [200, 170, 0.22, 0.26]].forEach(([a, b, w, d]) => this.fvoice({ wave: 'triangle', f0: a, curve: [[1, b]], dur: d, vol: 0.12 * v, when: w, dry: 0.3, dryLp: 600, formants: [[400, 3, 1], [900, 5, 0.3]], env: [[0.1, 1], [0.8, 0.8], [1, 0.05]] })); },
   s_door(v = 1) { this.tone({ wave: 'sawtooth', f0: 180, f1: 240, dur: 0.5, vol: 0.06 * v, lp: 600, tremRate: 18, tremDepth: 0.9 }); this.noise({ type: 'lowpass', f: 600, f1: 200, dur: 0.4, vol: 0.12 * v, when: 0.35 }); },
   s_doorClose(v = 1) { this.s_door(v); },
+  s_bubble(v = 1) { this.noise({ type: 'bandpass', f: 1800, q: 0.8, dur: 0.08, vol: 0.05 * v, at: 0.01 }); },
   s_whoosh(v = 1) { this.noise({ type: 'bandpass', f: 400, f1: 2000, q: 0.7, dur: 0.4, vol: 0.13 * v, at: 0.15 }); },
   s_sparkle(v = 1) { [1568, 2093, 2637, 3136, 3951].forEach((f, i) => this.tone({ wave: 'sine', f0: f, dur: 0.22, vol: 0.06 * v, when: i * 0.05, at: 0.003, rel: 0.2 })); },
   s_listen(v = 1) { [880, 1175].forEach((f, i) => this.tone({ wave: 'sine', f0: f, dur: 0.3, vol: 0.12 * v, when: i * 0.14, rel: 0.24 })); },

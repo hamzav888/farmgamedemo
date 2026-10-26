@@ -173,26 +173,30 @@ first-sound time, loop start/end, crossfade). Keep the content hash in the file 
 
 ### Effects
 
-* **Real recordings.** Every animal call, the barn door, the tractor horn, the splashes, the
-  squeaky duck and the kids cheering are recordings, in `sfx/`, built by `tools/make-sfx.py`
-  from Apple's iLife/iMovie sound-effect library (installed with iMovie) plus a few freely
-  licensed Wikimedia Commons recordings for the pig, cat, goat and crow (see `CREDITS.md`).
-  Each sound has several takes, all levelled to the same loudness; the game picks a different
-  take each time and nudges the pitch a few percent, so no two moos are identical.
-* **Ambience beds.** Real birdsong by day and real crickets by night, looped seamlessly,
-  with far-off frogs and an owl now and then after dark; the tractor runs on a real diesel
-  whose revs follow the throttle.
+* **Real recordings, chosen for quality.** Every sound effect is cut from a recording on
+  [Freesound](https://freesound.org): the animals, their tricks (munching, boinging, flapping,
+  galloping, purring, the mouse), the barn door, the tractor's bulb horn, splashes, bubbles, the
+  rubber duck, fireworks, kids cheering, and the interface sounds (pops, bells, sparkles, the
+  success jingle). `tools/freesound-scout.py` searches Freesound for CC0 / CC BY recordings in the
+  right duration range, ranks them by community rating and downloads, and measures the best few
+  (noise floor, clipping, bandwidth); the picks live in `tools/make-sfx.py`, which cuts, cleans,
+  levels and encodes them into `sfx/`. Credits for every clip are in `CREDITS.md`.
+* **Never the same twice.** Each sound has several takes, all levelled to one loudness; the
+  game picks a different take each time and nudges pitch and level a little.
+* **Ambience beds.** Spring birdsong by day and a cricket chorus by night, looped seamlessly,
+  with far-off frogs and an owl after dark; the tractor runs on a real engine whose revs follow
+  the throttle.
 * **Synthesis as the safety net.** `js/audio.js` still carries a synthesised version of every
-  sound (formant "voice boxes" for the animals), which plays until the recordings have
-  arrived or for anything with no recording. `Sfx.play()` returns how long the recording
-  lasts, so an animal's mouth flaps for exactly as long as it calls.
-* **Stereo placement.** `Sfx.play(name, vol, x)` pans by where the animal stands, so a cow on
-  the left of the farm moos from the left.
-* **Room.** A synthesised impulse response; inside the barn the room gets boomier and the outside
-  world muffles. A gentle limiter keeps a pile-up of sounds from ever hurting little ears.
-* **Rebuilding.** `tools/tts/.venv/bin/python -I tools/make-sfx.py` (needs iMovie installed;
-  the Commons sources go in `tools/sfx-src/`). Clips are named by content hash and cached for
-  a year; `sfx/manifest.json` is what the game reads.
+  sound, which plays until the recordings have arrived. `Sfx.play()` returns how long the
+  recording lasts, so an animal's mouth flaps for exactly as long as it calls.
+* **Stereo placement.** `Sfx.play(name, vol, x)` pans by where the animal stands.
+* **Room.** A synthesised impulse response, used lightly (the recordings bring their own
+  space); inside the barn the room gets boomier and the outside world muffles. A gentle limiter
+  keeps a pile-up of sounds from ever hurting little ears.
+* **Rebuilding.** Put a Freesound API key in `tools/sfx-src/freesound.key`, run
+  `tools/tts/.venv/bin/python -I tools/freesound-scout.py` to fetch the previews, then
+  `tools/tts/.venv/bin/python -I tools/make-sfx.py`. Clips are named by content hash and cached
+  for a year; `sfx/manifest.json` is what the game reads.
 
 ### The narrator's voice
 
