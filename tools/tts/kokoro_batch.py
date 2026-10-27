@@ -30,10 +30,17 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 # Spelling tweaks for the spoken text only; the game's subtitles keep the original.
 TEXT_FIX = [
     (r'Meh-eh-eh', 'Meh meh meh'),        # was read "meh-ay-ay"; a goat bleat is three short "meh"s
+    (r'\s*—\s*', ', '),                   # an em dash is a pause, not a word
 ]
 # Words no spelling can fix: supply the sound directly as phonemes.
 PHONEME_FIX = {
     'Shhh': 'ʃːːː',                       # every spelling of "shh" is read out as the letters "S-H-H-H"
+    'Hmm': 'hmːː', 'hmm': 'hmːː',         # was read "hum"; a thinking hum keeps the mouth closed
+    'Hooray': 'hʊɹˈeɪ', 'hooray': 'hʊɹˈeɪ',   # was "hoar-ay"
+    'Bok': 'bˈɑk', 'bok': 'bˈɑk',         # a hen's "bok" is clipped, not "bawk"
+    'Woof': 'wˈʊf', 'woof': 'wˈʊf',       # was "woof" with a long oo
+    'Kitten': 'kˈɪtən', 'kitten': 'kˈɪtən',   # was "ki'n" with a glottal stop
+    'Button': 'bˈʌtən', 'button': 'bˈʌtən',
 }
 
 def to_phonemes(tok, text, lang):
