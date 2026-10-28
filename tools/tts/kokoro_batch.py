@@ -28,10 +28,9 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 # ---- pronunciation ----
 # Words the model reads wrongly, checked by phonemising them (see tools/tts/README.md).
 # Spelling tweaks for the spoken text only; the game's subtitles keep the original.
-TEXT_FIX = [
-    (r'Meh-eh-eh', 'Meh meh meh'),        # was read "meh-ay-ay"; a goat bleat is three short "meh"s
-    (r'\s*—\s*', ', '),                   # an em dash is a pause, not a word
-]
+import sys, os
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))   # -I leaves this folder off the path
+from finishing import TEXT_FIX, TARGET, PEAK, finish   # shared with the other engines
 # Words no spelling can fix: supply the sound directly as phonemes.
 PHONEME_FIX = {
     'Shhh': 'ʃːːː',                       # every spelling of "shh" is read out as the letters "S-H-H-H"
@@ -51,29 +50,6 @@ def to_phonemes(tok, text, lang):
         if not part: continue
         out.append(PHONEME_FIX[part] if part in PHONEME_FIX else tok.phonemize(part, lang))
     return re.sub(r'\s+', ' ', ' '.join(p.strip() for p in out)).strip()
-
-# ---- finishing ----
-TARGET = 0.12      # RMS of the voiced parts, the same for every line
-PEAK = 0.95
-
-def finish(a, sr):
-    a = a.astype(np.float32)
-    # trim to the speech, keeping a short breath either side
-    thr = np.abs(a).max() * 10 ** (-40 / 20)
-    idx = np.flatnonzero(np.abs(a) > thr)
-    if len(idx): a = a[max(0, idx[0] - int(0.02 * sr)): min(len(a), idx[-1] + int(0.10 * sr))]
-    # loudness of the voiced 20 ms frames only, so pauses don't skew it
-    fl = int(0.02 * sr); n = len(a) // fl
-    if n:
-        rms = np.sqrt((a[:n * fl].reshape(n, fl) ** 2).mean(1))
-        voiced = rms[rms > rms.max() * 10 ** (-25 / 20)]
-        level = np.sqrt((voiced ** 2).mean()) if len(voiced) else rms.mean()
-        a *= TARGET / max(level, 1e-6)
-    pk = np.abs(a).max()
-    if pk > PEAK: a *= PEAK / pk                       # a rare punchy line gets a little quieter rather than clip
-    f = min(int(0.008 * sr), len(a) // 4)
-    if f: a[:f] *= np.linspace(0, 1, f); a[-f:] *= np.linspace(1, 0, f)
-    return a
 
 def main():
     spec = json.load(open(sys.argv[1]))

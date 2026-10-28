@@ -12,7 +12,7 @@ synthesis for any line that has no clip. Lines are rendered only if missing,
 so re-running after a text change is quick. The line list below mirrors every
 narrate() template in the game; add here whenever you add a line there.
 """
-import argparse, hashlib, json, os, subprocess, sys, tempfile, urllib.request
+import re, argparse, hashlib, json, os, subprocess, sys, tempfile, urllib.request
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = os.path.join(ROOT, 'voice')
@@ -138,6 +138,33 @@ def render_elevenlabs(text, path, voice):
                                  headers={'xi-api-key': key, 'Content-Type': 'application/json', 'Accept': 'audio/mpeg'})
     with urllib.request.urlopen(req, timeout=60) as r, open(path, 'wb') as f: f.write(r.read())
 
+def render_orpheus_batch(jobs, voice):
+    """Orpheus through mlx-audio (tools/tts/.venv-mlx). ~14 s a line on an M-series Mac, so it
+    works in chunks of 25, two chunks at a time, and encodes as it goes: an interrupted run
+    resumes from the last finished chunk. Every untouched generation is kept under
+    tools/sfx-src/voice-raw/ (git-ignored), so a change to the finishing chain only re-finishes."""
+    venv = os.path.join(ROOT, 'tools', 'tts', '.venv-mlx', 'bin', 'python')
+    if not os.path.exists(venv): sys.exit('Orpheus is not set up: see tools/tts/README.md (uv venv .venv-mlx ...; uv pip install mlx-audio)')
+    raw_dir = os.path.join(ROOT, 'tools', 'sfx-src', 'voice-raw', f'orpheus-{voice}')
+    import threading, concurrent.futures
+    lock = threading.Lock(); done = [0]
+    def run(chunk):
+        tmp = tempfile.mkdtemp()
+        spec = {'voice': voice, 'temperature': 0.6, 'top_p': 0.8, 'repetition_penalty': 1.3,
+                'jobs': [{'text': t, 'wav': os.path.join(tmp, f'{i}.wav'),
+                          'raw': os.path.join(raw_dir, hashlib.sha1(t.encode('utf-8')).hexdigest()[:12] + '.wav')}
+                         for i, (t, _) in enumerate(chunk)]}
+        spec_path = os.path.join(tmp, 'jobs.json'); json.dump(spec, open(spec_path, 'w'))
+        subprocess.run([venv, '-I', os.path.join(ROOT, 'tools', 'tts', 'orpheus_batch.py'), spec_path], check=True)
+        for (t, path), j in zip(chunk, spec['jobs']):
+            subprocess.run(['afconvert', '-f', 'm4af', '-d', 'aac', '-b', '56000', j['wav'], path], check=True, capture_output=True)
+            os.remove(j['wav'])
+        with lock:
+            done[0] += len(chunk); print(f'  {done[0]}/{len(jobs)} encoded', flush=True)
+    chunks = [jobs[i:i + 25] for i in range(0, len(jobs), 25)]
+    with concurrent.futures.ThreadPoolExecutor(max_workers=2) as ex:
+        for _ in ex.map(run, chunks): pass
+
 def render_kokoro_batch(jobs, voice, speed):
     """jobs: list of (text, m4a_path). Renders WAVs in one model load, then AAC-encodes each."""
     venv = os.path.join(ROOT, 'tools', 'tts', '.venv', 'bin', 'python')
@@ -152,14 +179,15 @@ def render_kokoro_batch(jobs, voice, speed):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument('--engine', choices=['kokoro', 'say', 'openai', 'elevenlabs'], default='kokoro')
+    ap.add_argument('--engine', choices=['kokoro', 'orpheus', 'say', 'openai', 'elevenlabs'], default='kokoro')
+    ap.add_argument('--only', default=None, help='regex: render only the lines that match (for re-doing a few)')
     ap.add_argument('--voice', default=None)
     ap.add_argument('--speed', type=float, default=0.95, help='kokoro speed (1.0 = natural)')
     ap.add_argument('--rate', type=int, default=168, help='words per minute (say engine)')
     ap.add_argument('--dry-run', action='store_true', help='list the lines and stop')
     a = ap.parse_args()
-    voice = a.voice or {'kokoro': 'af_heart', 'say': 'Samantha', 'openai': 'nova', 'elevenlabs': ''}[a.engine]
-    ext = 'm4a' if a.engine in ('say', 'kokoro') else 'mp3'
+    voice = a.voice or {'kokoro': 'af_heart', 'orpheus': 'tara', 'say': 'Samantha', 'openai': 'nova', 'elevenlabs': ''}[a.engine]
+    ext = 'm4a' if a.engine in ('say', 'kokoro', 'orpheus') else 'mp3'
     lines = all_lines()
     print(f'{len(lines)} lines')
     if a.dry_run:
@@ -169,7 +197,7 @@ def main():
     # clips are named by engine+voice+text, so switching voice never mixes old and new
     # bump RENDER_VERSION when the finishing chain changes: new names force a clean re-render
     # (and the CDN's long cache on voice/ can never serve an old take)
-    RENDER_VERSION = {'kokoro': 3}.get(a.engine, 1)
+    RENDER_VERSION = {'kokoro': 3, 'orpheus': 2}.get(a.engine, 1)
     tag = hashlib.sha1((f'{a.engine}:{voice}' + (f':v{RENDER_VERSION}' if RENDER_VERSION > 1 else '')).encode()).hexdigest()[:4]
     quality = 'neural' if a.engine != 'say' or '(Premium)' in voice or '(Enhanced)' in voice else 'standard'
     manifest = {'engine': a.engine, 'voice': voice, 'quality': quality, 'lines': {}}
@@ -179,15 +207,20 @@ def main():
         path = os.path.join(OUT, name)
         manifest['lines'][text] = name
         if os.path.exists(path): continue
-        if a.engine == 'kokoro': pending.append((text, path)); continue
+        if a.only and not re.search(a.only, text): continue
+        if a.engine in ('kokoro', 'orpheus'): pending.append((text, path)); continue
         if a.engine == 'say': render_say(text, path, voice, a.rate)
         elif a.engine == 'openai': render_openai(text, path, voice)
         else: render_elevenlabs(text, path, voice)
         done += 1
         if done % 25 == 0: print(f'  rendered {done}...', flush=True)
-    if pending: render_kokoro_batch(pending, voice, a.speed); done += len(pending)
+    if pending:
+        if a.engine == 'orpheus': render_orpheus_batch(pending, voice)
+        else: render_kokoro_batch(pending, voice, a.speed)
+        done += len(pending)
     # tidy away clips from other engines/voices so voice/ holds exactly one narrator
-    keep = set(manifest['lines'].values())
+    if a.only: manifest['lines'] = {t: n for t, n in manifest['lines'].items() if os.path.exists(os.path.join(OUT, n))}
+    keep = set(manifest['lines'].values()) | ({f for f in os.listdir(OUT)} if a.only else set())
     for f in os.listdir(OUT):
         if f.endswith(('.m4a', '.mp3')) and f not in keep: os.remove(os.path.join(OUT, f))
     with open(os.path.join(OUT, 'manifest.json'), 'w') as f: json.dump(manifest, f, ensure_ascii=False, indent=0)

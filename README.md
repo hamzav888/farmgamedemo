@@ -207,24 +207,26 @@ game's own audio graph — ducked under the music, a touch of presence, no robot
 without a clip falls back to the browser's speech synthesis, whose voices are ranked by quality
 markers (*Natural, Neural, Enhanced, Premium*).
 
-The shipped clips are rendered with **Kokoro**, a free, open-source neural voice that runs
-offline on the Mac (`tools/tts/`, Apache-2.0 — no account, no key, no limit). Re-render the
-whole narrator, or switch voice, with one command:
+The shipped clips are rendered with **Orpheus** ("tara"), a free, open-source 3B-parameter
+neural voice (Apache 2.0) that runs offline on the Mac through Apple's MLX framework — real
+phrasing, breaths and a few emotion tags placed by rule (a chuckle on the big wins, a gasp on
+"Uh oh", a yawn at bedtime). No account, no key, no limit. Re-render the whole narrator, or
+switch voice, with one command (≈1.5 hours for all 506 lines; resumable):
 
 ```bash
-python3 tools/make-voice.py --engine kokoro --voice af_heart
+python3 tools/make-voice.py --engine orpheus --voice tara
 ```
 
-Other free voices: `af_bella`, `af_sarah`, `bf_emma`, `bf_isabella`. Setup (once, ≈350 MB) is in
-`tools/tts/README.md`, which also covers the other free route — Apple's own *Premium* voices,
-downloadable in System Settings and then used with `--engine say --voice "Ava (Premium)"`.
-Paid services (`--engine openai` / `--engine elevenlabs`) are supported too but not needed.
+Other Orpheus voices: `leah`, `jess`, `mia`, `zoe`. **Kokoro** (`--engine kokoro --voice af_heart`,
+82M parameters, ≈15 minutes) remains as the quick alternative, and Apple's own *Premium* voices
+work with `--engine say`. Setup for each is in `tools/tts/README.md`. Paid services
+(`--engine openai` / `--engine elevenlabs`) are supported too but not needed.
 
 Every clip is finished like studio dialogue: silence trimmed so the voice answers a tap within
 ~20 ms, each line levelled to the same loudness (±0.4 dB across all 506), peaks kept clear of
-clipping. Words the model misreads are fixed in `tools/tts/kokoro_batch.py` — *"Shhh"* is given
-as phonemes (every spelling was read out as the letters "S-H-H-H"), and the goat's *"Meh-eh-eh"*
-is re-spelt so it isn't read "meh-ay-ay". Subtitles keep the original text.
+clipping. Words a model misreads are fixed at render time — spelling tweaks in
+`tools/tts/finishing.py` for every engine, phonemes in `tools/tts/kokoro_batch.py` for Kokoro
+(*"Shhh"*, *"Hmm"*, *"Hooray"*…). Subtitles keep the original text.
 
 (`--dry-run` lists the lines. The line list in the tool mirrors every `narrate()` in the game;
 when you add a line in the game, add it there too and re-run — only missing clips are rendered.)
