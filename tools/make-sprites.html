@@ -1,0 +1,63 @@
+<!-- Renders the landing page's sprites (landing-page/sprites/*.png) with the game's own drawing code.
+     Run the dev server (python3 serve.py), open http://localhost:8080/tools/make-sprites.html, wait for the
+     title to say "done", then:  for f in .tmp/sp-*.jpg; do n=$(basename "$f" .jpg); mv "$f" "landing-page/sprites/${n#sp-}.png"; done
+     (the files are PNGs; /__snap just names everything .jpg). Each sprite is drawn at 3x and auto-cropped. -->
+<!DOCTYPE html><meta charset="utf-8"><title>sprite render</title>
+<body style="background:#888">
+<script src="/js/util.js"></script>
+<script src="/js/audio.js"></script>
+<script src="/js/scenery.js"></script>
+<script src="/js/animals.js"></script>
+<script>
+const K = 3;
+function pose(o = {}) { return Object.assign({ t: 0.3, dir: 1, moving: false, run: false, phase: 0, sleeping: false, graze: false, peck: false, happy: false, talk: 0, blink: false, inWater: false, action: null }, o); }
+function animal(sp, v = 0, o = {}) {
+  return ctx => { const cfg = SPECIES[sp], s = cfg.scale || 1; ctx.save(); ctx.scale(s, s);
+    D.shadow(ctx, 0, 0, cfg.w * 0.32, 6, 0.14); drawSpecies(ctx, sp, cfg.variants[v], pose(o)); ctx.restore(); };
+}
+const SPRITES = {
+  cow: animal('cow'), horse: animal('horse'), pig: animal('pig'), sheep: animal('sheep'), goat: animal('goat'),
+  dog: animal('dog', 0, { happy: true }), cat: animal('cat'), kitten: animal('kitten'), chicken: animal('chicken', 1), rooster: animal('rooster'),
+  duck: animal('duck'), duckling: animal('duck', 1), owl: animal('owl'), frog: animal('frog'),
+  'cow-happy': animal('cow', 0, { happy: true, talk: 0.6 }), 'pig-happy': animal('pig', 0, { happy: true, talk: 0.5 }),
+  'sheep-happy': animal('sheep', 0, { happy: true }), 'chicken-happy': animal('chicken', 0, { happy: true, talk: 0.5 }),
+  'cow-sleep': animal('cow', 0, { sleeping: true }), 'pig-sleep': animal('pig', 1, { sleeping: true }), 'sheep-sleep': animal('sheep', 0, { sleeping: true }),
+  'dog-sleep': animal('dog', 0, { sleeping: true }), 'cat-sleep': animal('cat', 0, { sleeping: true }), 'horse-sleep': animal('horse', 0, { sleeping: true }),
+  'chicken-sleep': animal('chicken', 0, { sleeping: true }), 'duck-sleep': animal('duck', 0, { sleeping: true }),
+  barn: ctx => S.barn(ctx, 0, 0, { night: 0, doorOpen: 1 }),
+  'barn-night': ctx => { S.barnGlow(ctx, 0, 0, 1); S.barn(ctx, 0, 0, { night: 1, doorOpen: 0 }); },
+  tractor: ctx => S.tractor(ctx, 0, 0),
+  tree: ctx => S.tree(ctx, 0, 0, 0, { apples: true }),
+  'tree-branch': ctx => S.tree(ctx, 0, 0, 0, { branch: true }),
+  pine: ctx => S.pine(ctx, 0, 0, 1),
+  sun: ctx => S.sun(ctx, 0, 0, 0, 40), moon: ctx => S.moon(ctx, 0, 0, 0, 36), cloud: ctx => S.cloud(ctx, 0, 0, 1, 1),
+  hay: ctx => S.hayBale(ctx, 0, 0, 1), 'hay-round': ctx => S.hayBale(ctx, 0, 0, 1, true), haypile: ctx => S.hayPile(ctx, 0, 0, 1),
+  scarecrow: ctx => S.scarecrow(ctx, 0, 0, 0), windmill: ctx => S.windmill(ctx, 0, 0, 0), sunflower: ctx => S.sunflower(ctx, 0, 0, 0),
+  coop: ctx => S.coop(ctx, 0, 0), doghouse: ctx => S.dogHouse(ctx, 0, 0), fence: ctx => S.fenceSeg(ctx, -120, 0, 120, 0),
+  flowers: ctx => S.flowerPatch(ctx, 0, 0, 7), bush: ctx => S.bush(ctx, 0, 0, 1, true), rock: ctx => S.rock(ctx, 0, 0, 1.4),
+  butterfly: ctx => S.butterfly(ctx, 0, 0, 0.4, '#ff9f43'), 'butterfly-2': ctx => S.butterfly(ctx, 0, 0, 1.2, '#a29bfe'),
+  star: ctx => S.star(ctx, 0, 0, 20, 1), lantern: ctx => S.lantern(ctx, 0, 0, true, 0), bed: ctx => S.bed(ctx, 0, 0),
+  trough: ctx => S.trough(ctx, 0, 0, true), lily: ctx => S.lilyPad(ctx, 0, 0, 22, true), cattail: ctx => S.cattail(ctx, 0, 0, 0),
+};
+async function run() {
+  const out = [];
+  for (const [name, fn] of Object.entries(SPRITES)) {
+    const W = 1800, H = 1800, c = document.createElement('canvas'); c.width = W; c.height = H;
+    const ctx = c.getContext('2d');
+    try { ctx.save(); ctx.translate(W / 2, H * 0.72); ctx.scale(K, K); fn(ctx); ctx.restore(); }
+    catch (e) { out.push(name + ' ERR ' + e.message); continue; }
+    const d = ctx.getImageData(0, 0, W, H).data; let x0 = W, y0 = H, x1 = -1, y1 = -1;
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (d[(y * W + x) * 4 + 3] > 2) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+    if (x1 < 0) { out.push(name + ' EMPTY'); continue; }
+    const p = 6, cw = x1 - x0 + 1 + p * 2, ch = y1 - y0 + 1 + p * 2;
+    const o = document.createElement('canvas'); o.width = cw; o.height = ch;
+    o.getContext('2d').drawImage(c, x0 - p, y0 - p, cw, ch, 0, 0, cw, ch);
+    await fetch('/__snap?name=sp-' + name, { method: 'POST', body: o.toDataURL('image/png') });
+    out.push(name + ' ' + cw + 'x' + ch + ' feet@' + (W / 2 - x0 + p) + ',' + (H * 0.72 - y0 + p));
+    if (out.length < 12) document.body.appendChild(o);
+  }
+  window.__done = out;
+  document.title = 'done';
+}
+run();
+</script>

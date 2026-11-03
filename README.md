@@ -250,8 +250,10 @@ js/scenery.js            barn, trees, fences, pond, coop, tractor, windmill, sun
 js/farm.js               outdoor scene (day/night, night creatures, particles, mini-games)
 js/barn.js               barn interior scene (sleeping animals, counting, quiz, quiz camera)
 js/main.js               game loop, input, day/night cycle, HUD, cards, narration
+landing-page/            the marketing page at /landing-page (own HTML, screenshots, narrator sample, sprites); the game never loads it
 serve.py                 tiny local web server (python3 serve.py)
 tools/make-icons.html    regenerates icons/ from the game's own art
+tools/make-sprites.html  regenerates landing-page/sprites/ (animals, barn, tractor…) from the game's own art
 tools/make-voice.py      renders every narrator line to voice/ (Kokoro free neural voice; or say / OpenAI / ElevenLabs)
 tools/tts/               the free neural voice: Kokoro renderer + setup guide (venv and model are git-ignored)
 ```
@@ -265,6 +267,15 @@ so they can never drift from the art in the app. After changing an animal's artw
 2. open <http://localhost:8080/tools/make-icons.html>
 3. run `Object.entries(window.ICONS)` through the page's save call (see the file) — it
    writes straight into `icons/`.
+
+### The landing page
+
+`/landing-page` is a separate static page in `landing-page/` built to look like the game itself: the start
+screen on a farm, the learning cards, the barn quiz, the mini-game picker, all in the styles of `css/style.css`
+and `minigames/mg.css`. Its pictures are the game's own art, rendered by `js/animals.js` / `js/scenery.js` to
+transparent PNGs by `tools/make-sprites.html` (open it on the dev server; instructions are in the file). The
+share image is `landing-page/img/og.jpg`, a 1200×630 capture of `/landing-page/?og`. Nothing in the folder is
+loaded by the game; the only shared pieces are a `vercel.json` rewrite and cache headers scoped to `/landing-page`.
 
 Handy test flags: `?start` (skip splash), `?night`, `?barn`, `?quiz`, `?card`
 — e.g. <http://localhost:8080/?start&night&barn>.

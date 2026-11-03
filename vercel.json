@@ -136,7 +136,7 @@
       ]
     },
     {
-      "source": "/landing-page/(.*)\\.(jpg|m4a)",
+      "source": "/landing-page/(.*)\\.(jpg|png|m4a)",
       "headers": [
         {
           "key": "Cache-Control",

@@ -3,14 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Sunny Barn Farm — a gentle first farm game for ages 1–5</title>
+<title>Sunny Barn Farm 🐄 — a gentle first farm game for ages 1–5</title>
 <meta name="description" content="Tap the animals to hear their real sounds and learn their names, watch day turn to night, and count the sleeping animals in the big red barn. Free, no ads, nothing to read, works offline. Seven mini-games.">
-<meta name="theme-color" content="#6ab04c">
+<meta name="theme-color" content="#5fbdf7">
 <link rel="canonical" href="https://farmgamedemo.vercel.app/landing-page">
 
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Sunny Barn Farm">
-<meta property="og:title" content="Sunny Barn Farm — a gentle first farm game for ages 1–5">
+<meta property="og:title" content="Sunny Barn Farm 🐄 — a gentle first farm game for ages 1–5">
 <meta property="og:description" content="Tap the animals, hear their real sounds, learn their names and count them to sleep in the big red barn. Free, no ads, nothing to read.">
 <meta property="og:url" content="https://farmgamedemo.vercel.app/landing-page">
 <meta property="og:image" content="https://farmgamedemo.vercel.app/landing-page/img/og.jpg">
@@ -18,13 +18,21 @@
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 
-<!-- the game's own icons and typeface, read from the game's folders (nothing here is loaded by the game) -->
+<!-- The game's own icons and typeface, read from the game's folders. Nothing in this folder is loaded by the game. -->
 <link rel="icon" href="/icons/favicon-32.png" sizes="32x32" type="image/png">
 <link rel="icon" href="/icons/favicon-16.png" sizes="16x16" type="image/png">
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
 <link rel="preload" href="/fonts/fredoka.woff2" as="font" type="font/woff2" crossorigin>
 
 <style>
+/* ======================================================================
+   Sunny Barn Farm landing page.
+   Everything here is lifted from the game's own look (css/style.css and
+   minigames/mg.css): the start screen box, the HUD pills and round buttons,
+   the big glossy buttons with a hard shadow, the learning card, the barn
+   quiz, the mini-game picker. The pictures in /landing-page/sprites are
+   drawn by the game's own drawing code (js/animals.js, js/scenery.js).
+   ====================================================================== */
 @font-face {
   font-family: 'Fredoka';
   src: url('/fonts/fredoka.woff2') format('woff2');
@@ -32,364 +40,716 @@
 }
 :root {
   color-scheme: light;
-  --green: #6ab04c; --green-deep: #478f2f; --green-dark: #2f6b22; --grass: #a6dd7a;
-  --cream: #fff8e8; --paper: #fffdf7; --line: #efe2c6;
-  --ink: #2b2118; --ink-soft: #6f5d4b; --ink-faint: #9a8874;
-  --red: #d9452b; --sun: #ffd23f; --sky: #c7ecff; --sky-deep: #8fd3ff; --night: #1b2a4a;
-  --radius: 22px;
-  --shadow: 0 18px 40px -18px rgba(60, 40, 10, .35), 0 2px 6px rgba(60, 40, 10, .08);
-  --font: 'Fredoka', 'Segoe UI Rounded', 'Arial Rounded MT Bold', 'Nunito', system-ui, -apple-system, sans-serif;
+  --ol: #4a2f1a;                 /* the game's outline colour */
+  --brown: #5a3b1a; --brown-deep: #3d2b1f; --brown-soft: #7a3e12;
+  --red: #ff6b6b; --red-deep: #c0392b; --green: #48c774; --green-deep: #2e8b57;
+  --blue: #54a0ff; --blue-deep: #2e6fce; --yellow: #ffd23f; --yellow-deep: #d19a1b;
+  --orange: #ff9f43; --orange-deep: #d97b16; --purple: #a29bfe; --purple-deep: #6c5ce7; --pink: #fd79a8;
+  --title: #e17055; --title-shadow: #ffe28a;
+  --grass: #7fc24a; --grass-deep: #6ab04c; --grass-light: #9ad66a;
+  --sky-top: #5fbdf7; --sky-bottom: #bfe9ff;
+  --k: 1;                        /* sprite scale (shrinks on phones) */
+  --font: 'Fredoka', 'Comic Sans MS', 'Chalkboard SE', 'Segoe UI Rounded', 'Arial Rounded MT Bold', sans-serif;
 }
-* { box-sizing: border-box; }
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 html { scroll-behavior: smooth; }
 body {
-  margin: 0; background: var(--cream); color: var(--ink);
-  font-family: var(--font); font-size: 18px; line-height: 1.55; font-weight: 400;
+  margin: 0; background: var(--sky-bottom); color: var(--brown-deep);
+  font-family: var(--font); font-size: 20px; line-height: 1.4; font-weight: 400;
   -webkit-font-smoothing: antialiased; overflow-x: hidden;
 }
 img { max-width: 100%; height: auto; display: block; }
-a { color: var(--green-dark); }
-h1, h2, h3 { line-height: 1.12; margin: 0; font-weight: 600; letter-spacing: -.01em; }
-p { margin: 0; }
-.wrap { width: min(1120px, 100% - 40px); margin-inline: auto; }
-:focus-visible { outline: 3px solid var(--night); outline-offset: 3px; border-radius: 8px; }
+a { color: var(--blue-deep); }
+h1, h2, h3, p, ul, ol, figure { margin: 0; }
+button { font-family: inherit; }
+[hidden] { display: none !important; }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+:focus-visible { outline: 4px solid #fff; outline-offset: 3px; box-shadow: 0 0 0 7px var(--blue); }
+.wrap { width: min(1180px, 100% - 32px); margin-inline: auto; position: relative; }
+.sp { pointer-events: none; user-select: none; -webkit-user-drag: none; }
 
-/* buttons, in the game's own "Let's Play!" style */
-.btn {
-  display: inline-flex; align-items: center; justify-content: center; gap: .45em;
-  padding: 15px 30px; border-radius: 999px; border: 0; cursor: pointer; text-decoration: none;
-  font: 600 21px/1 var(--font); color: #fff;
-  background: linear-gradient(#86d262, #5aa83a); box-shadow: 0 5px 0 #3b7a27, 0 14px 28px -12px rgba(45, 100, 25, .6);
-  text-shadow: 0 1px 0 rgba(0,0,0,.18);
-  transition: transform .15s ease, box-shadow .15s ease;
+/* ---------- the game's buttons ---------- */
+.big-btn, .hud-btn, .start, .num-btn { position: relative; display: inline-flex; align-items: center; justify-content: center; text-decoration: none; cursor: pointer; }
+.big-btn::after, .hud-btn::after, .start::after, .num-btn::after {
+  content: ''; position: absolute; left: 14%; right: 14%; top: 4px; height: 40%;
+  border-radius: 999px; pointer-events: none;
+  background: linear-gradient(rgba(255,255,255,.55), rgba(255,255,255,0));
 }
-.btn:hover { transform: translateY(-2px); box-shadow: 0 7px 0 #3b7a27, 0 18px 30px -12px rgba(45, 100, 25, .6); }
-.btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #3b7a27; }
-.btn-ghost {
-  background: #fff; color: var(--ink); text-shadow: none;
-  box-shadow: 0 4px 0 #e2d3b4, inset 0 0 0 2px #efe2c6;
+.hud-btn::after { left: 20%; right: 20%; top: 5px; height: 36%; }
+.big-btn {
+  gap: .3em; border: 4px solid #fff; border-radius: 30px;
+  background: var(--red); color: #fff;
+  font-size: 24px; font-weight: 700; line-height: 1;
+  padding: 12px 22px;
+  box-shadow: 0 6px 0 var(--red-deep), 0 8px 14px rgba(0,0,0,.25);
+  text-shadow: 0 2px 0 rgba(0,0,0,.2);
+  transition: transform .14s cubic-bezier(.2,1.8,.4,1), filter .14s, box-shadow .14s;
 }
-.btn-ghost:hover { box-shadow: 0 6px 0 #e2d3b4, inset 0 0 0 2px #efe2c6; }
-.btn-ghost:active { box-shadow: 0 1px 0 #e2d3b4, inset 0 0 0 2px #efe2c6; }
-.btn-big { font-size: 26px; padding: 20px 40px; }
-
-/* header */
-.top { position: relative; z-index: 2; }
-.top .wrap { display: flex; align-items: center; gap: 14px; padding-block: 16px; }
-.brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--ink); font-weight: 600; font-size: 21px; }
-.brand img { width: 40px; height: 40px; border-radius: 11px; box-shadow: 0 2px 6px rgba(0,0,0,.12); }
-.nav { margin-left: auto; display: flex; align-items: center; gap: 6px 22px; }
-.nav a:not(.btn) { color: var(--ink-soft); text-decoration: none; font-weight: 500; }
-.nav a:not(.btn):hover { color: var(--ink); }
-.nav .btn { padding: 10px 20px; font-size: 18px; }
-@media (max-width: 680px) { .nav a:not(.btn) { display: none; } }
-
-/* hero */
-.hero { position: relative; background: linear-gradient(180deg, #bde7ff 0%, #e3f5ff 70%, #eef9ff 100%); padding: 24px 0 120px; overflow: hidden; }
-.hero::before { /* the sun */
-  content: ""; position: absolute; right: 8%; top: -70px; width: 220px; height: 220px; border-radius: 50%;
-  background: radial-gradient(circle, #ffe680 0 46%, rgba(255, 220, 90, .45) 50%, rgba(255, 220, 90, 0) 72%);
+.big-btn.quiz { background: var(--green); box-shadow: 0 6px 0 var(--green-deep), 0 8px 14px rgba(0,0,0,.25); }
+.big-btn.soft { background: var(--blue); box-shadow: 0 6px 0 var(--blue-deep), 0 8px 14px rgba(0,0,0,.25); }
+.big-btn.listen { background: var(--purple); box-shadow: 0 6px 0 var(--purple-deep), 0 8px 14px rgba(0,0,0,.25); }
+.big-btn.eggs { background: var(--orange); box-shadow: 0 6px 0 var(--orange-deep), 0 8px 14px rgba(0,0,0,.25); }
+.big-btn:active { transform: translateY(4px) scale(.95); box-shadow: 0 2px 0 rgba(0,0,0,.25); }
+.hud-btn {
+  width: 58px; height: 58px; border-radius: 50%; flex: none;
+  border: 4px solid #fff; background: var(--yellow);
+  font-size: 28px; line-height: 1;
+  box-shadow: 0 6px 0 var(--yellow-deep), 0 8px 12px rgba(0,0,0,.25);
+  transition: transform .14s cubic-bezier(.2,1.8,.4,1), filter .14s, box-shadow .14s;
 }
-.hero .wrap { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: 40px; align-items: center; }
-.eyebrow { display: inline-flex; align-items: center; gap: 8px; padding: 7px 14px; border-radius: 999px; background: #fff; color: var(--green-dark); font-weight: 600; font-size: 15px; box-shadow: 0 2px 8px rgba(40, 60, 30, .12); }
-.eyebrow b { color: var(--red); }
-h1 { font-size: clamp(44px, 7vw, 76px); margin-top: 18px; color: #1f3b14; }
-.lead { font-size: clamp(19px, 2.2vw, 23px); color: #3a4a30; margin-top: 16px; max-width: 34ch; }
-.cta { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 28px; }
-.trust { display: flex; flex-wrap: wrap; gap: 8px 18px; margin-top: 22px; color: #4e5f44; font-size: 16px; font-weight: 500; }
-.trust span::before { content: "✓ "; color: var(--green-deep); font-weight: 700; }
-.shot {
-  border-radius: var(--radius); overflow: hidden; background: #fff; padding: 9px; box-shadow: var(--shadow);
+.hud-btn:active { transform: translateY(4px) scale(.95); box-shadow: 0 2px 0 var(--yellow-deep); }
+@media (hover: hover) {
+  .hud-btn:hover, .big-btn:hover, .num-btn:hover { transform: translateY(-3px) scale(1.04); filter: brightness(1.06); }
+  .hud-btn:hover:active, .big-btn:hover:active, .num-btn:hover:active { transform: translateY(4px) scale(.95); }
+  .start:hover { filter: brightness(1.07); }
 }
-.shot img { border-radius: calc(var(--radius) - 9px); aspect-ratio: 16 / 10; object-fit: cover; }
-.hero .shot { transform: rotate(-1.2deg); }
-.hero .shot:hover { transform: rotate(0deg); transition: transform .35s ease; }
-.hero .hill { position: absolute; left: 0; right: 0; bottom: -2px; width: 100%; height: 110px; display: block; }
-@media (max-width: 860px) {
-  .hero { padding-bottom: 96px; }
-  .hero .wrap { grid-template-columns: 1fr; gap: 30px; }
-  .hero .shot { transform: none; }
-  .hero::before { right: -40px; top: -90px; width: 180px; height: 180px; }
+/* the start screen's "Let's Play!" button, pulse and all */
+.start {
+  font-size: 36px; font-weight: 700; color: #fff; line-height: 1;
+  background: var(--green); border: 5px solid #fff; border-radius: 40px;
+  padding: 14px 46px;
+  box-shadow: 0 8px 0 var(--green-deep), 0 12px 20px rgba(0,0,0,.25);
+  text-shadow: 0 2px 0 rgba(0,0,0,.2);
+  animation: pulse 1.4s infinite;
+}
+.start:active { transform: translateY(6px); box-shadow: 0 2px 0 var(--green-deep); animation: none; }
+@keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.06); } }
+
+/* the game's pills */
+.title-pill, .star-pill, .barn-hint, .tap-hint {
+  display: inline-flex; align-items: center; gap: .3em; white-space: nowrap;
+  background: rgba(255,255,255,.9); border-radius: 40px; font-weight: 700; text-decoration: none;
+}
+.title-pill { border: 4px solid var(--orange); padding: 6px 20px; font-size: 24px; color: var(--brown-soft); box-shadow: 0 6px 0 rgba(0,0,0,.15); }
+.star-pill { border: 4px solid var(--yellow); padding: 6px 16px; font-size: 22px; color: #b8860b; box-shadow: 0 6px 0 rgba(0,0,0,.15); }
+.barn-hint { border: 4px solid var(--yellow); border-radius: 30px; padding: 6px 22px; font-size: 20px; color: var(--brown); white-space: normal; }
+.tap-hint { background: #fff; border: 4px solid var(--red); border-radius: 30px; padding: 6px 20px; font-size: 26px; color: var(--red-deep); animation: bounce 1s infinite; }
+@keyframes bounce { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+.subtitle {
+  display: inline-block; background: rgba(60,30,10,.82); color: #fff;
+  border-radius: 20px; padding: 8px 20px; font-size: 20px; text-align: center; line-height: 1.3;
 }
 
-/* sections */
-section { padding: 72px 0; }
-.sec-head { max-width: 62ch; margin-bottom: 36px; }
-.kicker { display: inline-block; padding: 5px 12px; border-radius: 999px; background: #e8f5df; color: var(--green-dark); font-weight: 600; font-size: 14px; letter-spacing: .02em; text-transform: uppercase; }
-h2 { font-size: clamp(30px, 4.2vw, 44px); margin-top: 12px; }
-.sec-head p { margin-top: 12px; color: var(--ink-soft); font-size: 19px; }
-.alt { background: var(--paper); border-block: 2px solid var(--line); }
-.night { background: linear-gradient(180deg, #1b2a4a, #223a63); color: #eef4ff; border: 0; }
-.night .kicker { background: rgba(255,255,255,.12); color: #ffe680; }
-.night .sec-head p { color: #c9d6ee; }
-.night .shot { background: #0f1a33; }
-
-.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; }
-.card { background: #fff; border: 2px solid var(--line); border-radius: var(--radius); padding: 24px 22px; }
-.card .ico { width: 58px; height: 58px; border-radius: 18px; display: grid; place-items: center; font-size: 30px; background: var(--c, #e8f5df); margin-bottom: 14px; }
-.card h3 { font-size: 22px; }
-.card p { margin-top: 8px; color: var(--ink-soft); font-size: 17px; }
-.card q { font-style: italic; color: var(--ink); }
-
-.two { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 24px; }
-figure { margin: 0; }
-figcaption { margin-top: 12px; font-size: 16px; color: inherit; opacity: .85; }
-
-.games { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 22px; }
-.game { background: #fff; border: 2px solid var(--line); border-radius: var(--radius); overflow: hidden; display: flex; flex-direction: column; }
-.game img { aspect-ratio: 16 / 10; object-fit: cover; width: 100%; }
-.game .body { padding: 18px 20px 20px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
-.game h3 { font-size: 21px; }
-.game p { color: var(--ink-soft); font-size: 16px; flex: 1; }
-.teach { align-self: flex-start; font-size: 14px; font-weight: 600; color: var(--green-dark); background: #e8f5df; padding: 4px 10px; border-radius: 999px; }
-
-.sound { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 36px; align-items: center; }
-.player { background: #fff; border: 2px solid var(--line); border-radius: var(--radius); padding: 26px; display: flex; align-items: center; gap: 20px; box-shadow: var(--shadow); }
-.play {
-  flex: none; width: 82px; height: 82px; border-radius: 50%; border: 0; cursor: pointer; color: #fff; font-size: 34px;
-  background: linear-gradient(#86d262, #5aa83a); box-shadow: 0 5px 0 #3b7a27; display: grid; place-items: center;
+/* ---------- backgrounds ---------- */
+.sky { background: linear-gradient(180deg, var(--sky-top) 0%, var(--sky-bottom) 100%); }
+.field {
+  background-color: var(--grass);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='48' viewBox='0 0 64 48'%3E%3Cg fill='none' stroke='%236ab04c' stroke-width='3' stroke-linecap='round'%3E%3Cpath d='M8 30l3-8M26 14l3-8M44 34l3-8M58 18l3-8M16 44l3-8M38 6l3-8'/%3E%3C/g%3E%3C/svg%3E");
 }
-.play:active { transform: translateY(2px); box-shadow: 0 2px 0 #3b7a27; }
-.play[aria-pressed="true"] { background: linear-gradient(#ff8a6b, #d9452b); box-shadow: 0 5px 0 #9a2f1b; }
-.player strong { display: block; font-size: 20px; }
-.player small { display: block; color: var(--ink-soft); font-size: 15px; margin-top: 4px; }
-.bars { display: flex; gap: 4px; align-items: flex-end; height: 26px; margin-top: 10px; }
-.bars i { width: 5px; height: 6px; border-radius: 3px; background: var(--green); opacity: .45; transition: height .2s; }
-.player.on .bars i { animation: bar .7s ease-in-out infinite alternate; opacity: 1; }
-.player.on .bars i:nth-child(2n) { animation-delay: .18s; } .player.on .bars i:nth-child(3n) { animation-delay: .32s; }
-@keyframes bar { from { height: 6px; } to { height: 26px; } }
-@media (max-width: 860px) { .sound { grid-template-columns: 1fr; } }
+.sunset { background: radial-gradient(circle at 50% 30%, #ffe28a 0%, #ffb347 40%, #ff7e5f 100%); }
+.night { background: linear-gradient(180deg, #0d1b3d 0%, #23386b 100%); color: #fff1b8; }
+section { position: relative; overflow: hidden; }
 
-.list { list-style: none; padding: 0; margin: 0; display: grid; gap: 12px; }
-.list li { display: flex; gap: 12px; align-items: flex-start; font-size: 17px; }
-.list li::before { content: "✓"; flex: none; width: 26px; height: 26px; border-radius: 50%; background: #e8f5df; color: var(--green-dark); font-weight: 700; display: grid; place-items: center; font-size: 15px; margin-top: 2px; }
-.steps { counter-reset: s; list-style: none; padding: 0; margin: 0; display: grid; gap: 14px; }
-.steps li { display: flex; gap: 14px; align-items: flex-start; font-size: 17px; }
-.steps li::before { counter-increment: s; content: counter(s); flex: none; width: 30px; height: 30px; border-radius: 50%; background: var(--sun); color: #5a3d00; font-weight: 700; display: grid; place-items: center; }
-.box { background: #fff; border: 2px solid var(--line); border-radius: var(--radius); padding: 26px; }
-.box h3 { font-size: 22px; margin-bottom: 16px; }
-.tip { margin-top: 16px; padding: 12px 16px; background: #fff6d6; border-radius: 14px; color: #5a3d00; font-size: 16px; }
+/* ---------- HUD header ---------- */
+.hud {
+  position: sticky; top: 0; z-index: 20;
+  background: linear-gradient(rgba(95,189,247,.96), rgba(95,189,247,.82));
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+}
+.hud .wrap { display: flex; align-items: center; gap: 10px; padding: 10px 0; }
+.hud .star-pill { display: none; }
+.hud nav { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+.hud .big-btn { font-size: 22px; padding: 10px 20px; }
+@media (min-width: 720px) { .hud .star-pill { display: inline-flex; } }
+@media (max-width: 560px) {
+  .hud .title-pill { font-size: 18px; padding: 5px 12px; border-width: 3px; }
+  .hud .title-pill .e { display: none; }
+  .hud .hud-btn { width: 46px; height: 46px; font-size: 22px; border-width: 3px; }
+  .hud .big-btn { font-size: 18px; padding: 9px 12px; border-width: 3px; }
+  .hud .wrap { gap: 6px; } .hud nav { gap: 6px; }
+}
+@media (max-width: 400px) { .hud .hud-btn.x, .hud .hud-btn.q { display: none; } }
+.hud .big-btn, .hud .title-pill { white-space: nowrap; }
 
-.cta-band { background: linear-gradient(135deg, #5aa83a, #3f8a2e); color: #fff; text-align: center; padding: 70px 0; }
-.cta-band h2 { color: #fff; }
-.cta-band p { margin-top: 10px; color: #e3f5d9; font-size: 19px; }
-.cta-band .btn { margin-top: 26px; background: linear-gradient(#fff3c2, #ffd23f); color: #5a3d00; text-shadow: none; box-shadow: 0 5px 0 #c99a00, 0 14px 28px -12px rgba(0,0,0,.35); }
-.cta-band .btn:hover { box-shadow: 0 7px 0 #c99a00, 0 18px 30px -12px rgba(0,0,0,.35); }
-.cta-band .btn:active { box-shadow: 0 2px 0 #c99a00; }
-.cta-band .url { margin-top: 18px; font-size: 17px; color: #d2ecc6; }
+/* ---------- hero: the start screen, on a farm ---------- */
+.hero { padding: 36px 0 0; }
+.hero .sun { position: absolute; right: 4%; top: 18px; width: calc(150px * var(--k)); animation: sunspin 24s linear infinite; z-index: 0; }
+@keyframes sunspin { from { transform: rotate(0); } to { transform: rotate(360deg); } }
+.cloud { position: absolute; width: calc(110px * var(--k)); opacity: .95; animation: drift linear infinite; z-index: 0; }
+.cloud.c1 { top: 40px; animation-duration: 80s; }
+.cloud.c2 { top: 150px; width: calc(80px * var(--k)); animation-duration: 110s; animation-delay: -40s; }
+.cloud.c3 { top: 90px; width: calc(140px * var(--k)); animation-duration: 95s; animation-delay: -70s; }
+@keyframes drift { from { left: -200px; } to { left: 110%; } }
+.bfly { position: absolute; width: 34px; z-index: 3; animation: flutter 9s ease-in-out infinite; }
+.bfly.b1 { left: 8%; top: 36%; }
+.bfly.b2 { right: 10%; top: 48%; animation-duration: 11s; animation-delay: -5s; }
+@keyframes flutter { 0%,100% { transform: translate(0,0) rotate(-8deg); } 25% { transform: translate(40px,-30px) rotate(8deg); } 50% { transform: translate(90px,10px) rotate(-6deg); } 75% { transform: translate(30px,40px) rotate(10deg); } }
 
-footer { padding: 36px 0 48px; color: var(--ink-soft); font-size: 15px; }
-footer .wrap { display: grid; gap: 14px; }
-footer nav { display: flex; flex-wrap: wrap; gap: 8px 22px; }
-footer nav a { color: var(--ink); text-decoration: none; font-weight: 500; }
-footer nav a:hover { text-decoration: underline; }
+.splash-box {
+  position: relative; z-index: 4;
+  width: min(760px, 100% - 24px); margin: 0 auto;
+  background: rgba(255,255,255,.94); border: 6px solid var(--red); border-radius: 36px;
+  padding: 26px 32px 24px; text-align: center;
+  box-shadow: 0 14px 0 rgba(0,0,0,.15), 0 20px 40px rgba(0,0,0,.3);
+  animation: boxIn .55s cubic-bezier(.2,1.5,.4,1) backwards;
+}
+@keyframes boxIn { from { transform: scale(.72) translateY(40px); opacity: 0; } }
+.splash-box h1, .splash-h {
+  font-size: clamp(30px, 6.4vw, 52px); font-weight: 700; color: var(--title); line-height: 1.1;
+  text-shadow: 3px 3px 0 var(--title-shadow);
+}
+.splash-box h1 { animation: titleDrop .75s cubic-bezier(.2,1.7,.4,1) .12s backwards; }
+@keyframes titleDrop { from { transform: translateY(-46px) scale(.8); opacity: 0; } }
+.tag { font-size: clamp(18px, 3vw, 24px); color: var(--purple-deep); margin: 6px 0 10px; }
+.ages { display: inline-block; vertical-align: middle; margin-left: 6px; background: var(--green); color: #fff; font-size: 17px; font-weight: 700; border-radius: 999px; padding: 3px 14px; white-space: nowrap; }
 
+/* the row of animals on the start screen: the real ones, hopping in a wave */
+.row {
+  position: relative; display: flex; align-items: flex-end; justify-content: space-around;
+  height: calc(150px * var(--k)); margin: 4px auto 12px; padding: 0 6px 18px;
+  background: linear-gradient(transparent calc(100% - 34px), var(--grass) calc(100% - 34px));
+  border-radius: 17px; animation: fadeUp .5s ease-out .25s backwards; --k: .9;
+}
+@keyframes fadeUp { from { transform: translateY(14px); opacity: 0; } }
+.row .an { height: calc(var(--h) * var(--k)); width: auto; animation: hop 3s ease-in-out infinite; transform-origin: 50% 100%; }
+.row .an:nth-child(1) { --h: 110px; animation-delay: 0s; } .row .an:nth-child(2) { --h: 124px; animation-delay: .16s; }
+.row .an:nth-child(3) { --h: 92px; animation-delay: .32s; }  .row .an:nth-child(4) { --h: 94px; animation-delay: .48s; }
+.row .an:nth-child(5) { --h: 88px; animation-delay: .64s; }  .row .an:nth-child(6) { --h: 84px; animation-delay: .8s; }
+.row .an:nth-child(7) { --h: 84px; animation-delay: .96s; }
+@keyframes hop { 0%, 30%, 100% { transform: translateY(0) scale(1, 1); } 7% { transform: translateY(-16px) scale(.96, 1.05); } 14% { transform: translateY(0) scale(1.12, .88); } 20% { transform: scale(1, 1); } }
+
+.howto { list-style: none; padding: 0; margin: 0 0 18px; text-align: left; font-size: clamp(17px, 2.6vw, 22px); color: var(--brown-deep); }
+.howto li { display: flex; align-items: center; gap: 14px; margin: 8px 0; animation: liIn .42s cubic-bezier(.2,1.4,.4,1) backwards; }
+.howto li span { font-size: 30px; width: 70px; flex: 0 0 70px; text-align: center; white-space: nowrap; }
+.howto li b { color: var(--red-deep); }
+.howto li:nth-child(1) { animation-delay: .34s; } .howto li:nth-child(2) { animation-delay: .40s; } .howto li:nth-child(3) { animation-delay: .46s; }
+.howto li:nth-child(4) { animation-delay: .52s; } .howto li:nth-child(5) { animation-delay: .58s; } .howto li:nth-child(6) { animation-delay: .64s; }
+@keyframes liIn { from { transform: translateX(-28px); opacity: 0; } }
+.tiny { font-size: 18px; color: var(--brown-soft); margin: 12px 0 0; }
+.pills { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 14px; }
+.pills span { background: #fff6d6; border: 3px solid var(--yellow); border-radius: 999px; padding: 4px 14px; font-size: 16px; font-weight: 700; color: var(--brown); }
+@media (max-width: 560px) {
+  .splash-box { padding: 20px 14px 18px; border-width: 5px; border-radius: 28px; }
+  .howto li span { font-size: 24px; width: 46px; flex-basis: 46px; }
+  .start { font-size: 30px; padding: 12px 34px; }
+}
+
+/* the farm under the start screen: hills, barn, tree, tractor, fence; all the game's own art */
+.ground { position: relative; height: calc(330px * var(--k)); margin-top: -40px; z-index: 2; }
+.hills { position: absolute; left: 0; right: 0; bottom: 0; width: 100%; height: 100%; display: block; }
+.ground .sp { position: absolute; bottom: 0; transform: translateX(-50%); }
+.ground .barn { left: 50%; bottom: 10px; width: calc(380px * var(--k)); }
+.ground .tree { left: 14%; bottom: 44px; width: calc(126px * var(--k)); }
+.ground .tree2 { left: 84%; bottom: 36px; width: calc(118px * var(--k)); }
+.ground .windmill { left: 5%; bottom: 76px; width: calc(90px * var(--k)); }
+.ground .tractor { left: 73%; bottom: 4px; width: calc(118px * var(--k)); }
+.ground .coop { left: 92%; bottom: 2px; width: calc(120px * var(--k)); }
+.ground .hay { left: 29%; bottom: 8px; width: calc(70px * var(--k)); }
+.ground .hay2 { left: 33%; bottom: 20px; width: calc(60px * var(--k)); }
+.ground .cow { left: 24%; bottom: 36px; width: calc(100px * var(--k)); }
+.ground .sheep { left: 63%; bottom: 24px; width: calc(74px * var(--k)); }
+.ground .chicken { left: 88%; bottom: 0; width: calc(52px * var(--k)); }
+.ground .dog { left: 40%; bottom: 0; width: calc(72px * var(--k)); }
+.ground .flowers { left: 18%; bottom: 10px; width: calc(60px * var(--k)); }
+.ground .flowers2 { left: 58%; bottom: 4px; width: calc(60px * var(--k)); }
+.ground .scarecrow { left: 10%; bottom: 0; width: calc(80px * var(--k)); }
+.ground .fence { position: absolute; left: 0; right: 0; bottom: 0; height: calc(40px * var(--k)); background: url('/landing-page/sprites/fence.png') repeat-x left bottom / auto 100%; transform: none; }
+@media (max-width: 760px) { .ground .windmill, .ground .coop, .ground .scarecrow, .ground .hay2, .ground .flowers2 { display: none; } .ground .tree { left: 10%; } .ground .tree2 { left: 90%; } }
+
+/* ---------- learning cards (the "COW" card in the game) ---------- */
+.card {
+  position: relative; background: rgba(255,255,255,.95);
+  border: 5px solid var(--c, var(--orange)); border-radius: 28px;
+  padding: 18px 22px 22px;
+  box-shadow: 0 10px 0 rgba(0,0,0,.15), 0 14px 30px rgba(0,0,0,.25);
+}
+.card-name { font-size: clamp(26px, 4.6vw, 46px); font-weight: 700; color: var(--title); letter-spacing: 2px; line-height: 1.05; text-transform: uppercase; }
+.card-sub { font-size: clamp(18px, 2.4vw, 23px); color: var(--brown); margin-top: 6px; }
+.card-sub b { color: var(--red-deep); }
+.head { display: flex; align-items: center; gap: 18px; margin: 0 auto 30px; width: fit-content; max-width: 100%; padding-right: 30px; }
+.head .emoji { font-size: clamp(48px, 7vw, 72px); line-height: 1; flex: none; animation: emojiIn .6s cubic-bezier(.2,1.8,.4,1) backwards; }
+@keyframes emojiIn { from { transform: scale(.2) rotate(-30deg); } }
+@media (max-width: 560px) { .head { flex-direction: column; text-align: center; padding: 16px; } }
+
+.pop { opacity: 0; transform: scale(.6) translateY(24px); }
+.pop.in { animation: cardIn .5s cubic-bezier(.2,1.5,.4,1) forwards; }
+@keyframes cardIn { to { opacity: 1; transform: none; } }
+
+/* ---------- what's on the farm ---------- */
+#inside { padding: 60px 0 70px; }
+.grid4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 26px; }
+.feat { text-align: center; padding-top: 26px; }
+.feat .pic { height: 120px; display: flex; align-items: flex-end; justify-content: center; gap: 6px; margin-bottom: 14px; }
+.feat .pic img { max-height: 100%; width: auto; }
+.feat .pic .zz { font-size: 22px; font-weight: 700; color: var(--purple-deep); animation: zz 2.4s ease-in-out infinite; }
+@keyframes zz { 0% { transform: translate(0,0); opacity: 0; } 30% { opacity: 1; } 100% { transform: translate(14px,-26px); opacity: 0; } }
+.feat .card-name { font-size: clamp(22px, 2.6vw, 28px); letter-spacing: 1px; }
+.feat p { margin-top: 10px; font-size: 18px; color: var(--brown); }
+.feat .subtitle { margin-top: 14px; font-size: 17px; }
+.feat .star-pill { margin-top: 14px; font-size: 20px; }
+.feat .pic .sunmoon { animation: sway 4s ease-in-out infinite; }
+@keyframes sway { 0%,100% { transform: rotate(-6deg); } 50% { transform: rotate(6deg); } }
+.feat .pic .fly { animation: fly 3s ease-in-out infinite; }
+@keyframes fly { 0%,100% { transform: translateY(0) rotate(-10deg); } 50% { transform: translateY(-14px) rotate(10deg); } }
+
+/* ---------- night ---------- */
+.night { padding: 70px 0 80px; }
+.night .card { background: rgba(255,255,255,.95); }
+.night .star { position: absolute; width: 10px; height: 10px; animation: twinkle 2.6s ease-in-out infinite; pointer-events: none; }
+@keyframes twinkle { 0%,100% { opacity: .25; transform: scale(.7); } 50% { opacity: 1; transform: scale(1.15); } }
+.night .moon { position: absolute; right: 6%; top: 40px; width: calc(130px * var(--k)); filter: drop-shadow(0 0 30px rgba(255,240,180,.5)); z-index: 0; }
+.night .firefly { position: absolute; width: 7px; height: 7px; border-radius: 50%; background: #ffe066; box-shadow: 0 0 10px 3px rgba(255,224,102,.75); animation: blink 3s ease-in-out infinite; pointer-events: none; }
+@keyframes blink { 0%,100% { opacity: 0; transform: translate(0,0); } 40% { opacity: 1; } 60% { opacity: .9; transform: translate(10px,-14px); } }
+.night .head { --c: var(--purple); }
+.night .card-name { color: var(--purple-deep); }
+.scene { position: relative; height: calc(300px * var(--k)); margin: 10px auto 30px; }
+.scene .sp { position: absolute; bottom: 0; transform: translateX(-50%); }
+.scene .barnn { left: 50%; width: calc(360px * var(--k)); z-index: 1; }
+.scene .treeb { left: 16%; width: calc(126px * var(--k)); bottom: 6px; }
+.scene .owl { left: calc(16% + 26px * var(--k)); bottom: calc(78px * var(--k)); width: calc(48px * var(--k)); z-index: 2; }
+.scene .lily { left: 86%; bottom: 0; width: calc(50px * var(--k)); }
+.scene .frog { left: 86%; bottom: 10px; width: calc(48px * var(--k)); z-index: 2; }
+.scene .pine { left: 95%; bottom: 0; width: calc(90px * var(--k)); }
+.scene .sleep { z-index: 3; }
+.scene .s1 { left: 26%; width: calc(120px * var(--k)); } .scene .s2 { left: 38%; width: calc(90px * var(--k)); }
+.scene .s3 { left: 62%; width: calc(90px * var(--k)); } .scene .s4 { left: 73%; width: calc(90px * var(--k)); }
+.scene .zz { position: absolute; bottom: 60px; font-size: 26px; font-weight: 700; color: #fff1b8; animation: zz 2.4s ease-in-out infinite; }
+.scene .z1 { left: 30%; } .scene .z2 { left: 65%; animation-delay: -1.2s; }
+.scene .ground-line { position: absolute; left: 0; right: 0; bottom: -2px; height: 14px; background: #1f4d2b; border-radius: 7px; }
+@media (max-width: 760px) { .scene .pine, .scene .s4, .scene .treeb, .scene .owl { display: none; } .scene .s1 { left: 18%; } .scene .s2 { left: 34%; } .scene .s3 { left: 78%; } }
+.two { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 28px; }
+.shot { border: 5px solid var(--c, var(--yellow)); border-radius: 22px; overflow: hidden; background: #fff; box-shadow: 0 10px 0 rgba(0,0,0,.2), 0 14px 30px rgba(0,0,0,.3); }
+.shot img { width: 100%; aspect-ratio: 16 / 10; object-fit: cover; }
+figure .barn-hint { margin: 14px auto 0; display: flex; justify-content: center; text-align: center; }
+figure { text-align: center; }
+
+/* the barn quiz */
+.quiz {
+  margin: 44px auto 0; width: min(640px, 100%);
+  background: rgba(255,255,255,.96); border: 5px solid var(--green); border-radius: 30px;
+  padding: 18px 26px 24px; text-align: center; color: #2d3436;
+  box-shadow: 0 10px 0 rgba(0,0,0,.15), 0 14px 30px rgba(0,0,0,.25);
+}
+.quiz .pigs { display: flex; justify-content: center; align-items: flex-end; gap: 10px; height: 80px; margin-bottom: 8px; }
+.quiz .pigs img { height: 70px; width: auto; }
+.quiz-q { font-size: clamp(24px, 4vw, 32px); font-weight: 700; margin-bottom: 14px; }
+.quiz-choices { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+.num-btn {
+  width: 66px; height: 66px; border-radius: 18px; border: 4px solid #fff;
+  font-size: 34px; font-weight: 700; color: #fff; background: var(--c);
+  box-shadow: 0 6px 0 rgba(0,0,0,.25);
+  transition: transform .14s cubic-bezier(.2,1.8,.4,1), filter .14s, box-shadow .14s, opacity .3s;
+}
+.num-btn:active { transform: translateY(4px) scale(.95); box-shadow: 0 2px 0 rgba(0,0,0,.25); }
+.num-btn.right { animation: wiggle .5s; }
+.num-btn.wrong { opacity: .35; }
+@keyframes wiggle { 0%,100% { transform: rotate(0) scale(1); } 25% { transform: rotate(-10deg) scale(1.2); } 75% { transform: rotate(10deg) scale(1.2); } }
+.quiz .subtitle { margin-top: 16px; }
+.quiz .big-btn { margin-top: 14px; font-size: 20px; }
+.quiz .wake { animation: wake .6s cubic-bezier(.2,1.8,.4,1); }
+@keyframes wake { 30% { transform: translateY(-16px) scale(1.1); } }
+.confetti { position: absolute; width: 10px; height: 14px; border-radius: 3px; pointer-events: none; animation: fall 1.4s ease-in forwards; }
+@keyframes fall { to { transform: translateY(220px) rotate(540deg); opacity: 0; } }
+
+/* ---------- mini-game picker ---------- */
+#games { padding: 60px 0 70px; }
+.hub-box {
+  width: min(1180px, 100% - 24px); margin: 0 auto;
+  background: rgba(255,255,255,.94); border: 6px solid var(--red); border-radius: 36px;
+  padding: 22px 32px 22px; text-align: center;
+  box-shadow: 0 14px 0 rgba(0,0,0,.15), 0 20px 40px rgba(0,0,0,.3);
+}
+.hub-box .tag { margin: 6px 0 16px; }
+.hub-stars { display: inline-block; vertical-align: middle; margin-left: 8px; background: var(--yellow); color: var(--brown-soft); font-size: 18px; font-weight: 700; border-radius: 999px; padding: 3px 14px; white-space: nowrap; }
+.hub-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin: 0 0 18px; }
+.game-card {
+  display: flex; flex-direction: column; align-items: center; gap: 2px; text-decoration: none; color: inherit;
+  background: #fff; border: 5px solid var(--yellow); border-radius: 22px;
+  padding: 8px 8px 12px; cursor: pointer;
+  box-shadow: 0 8px 0 rgba(0,0,0,.12); transition: transform .14s cubic-bezier(.2,1.8,.4,1), box-shadow .14s;
+}
+.game-card:active { transform: translateY(5px); box-shadow: 0 3px 0 rgba(0,0,0,.12); }
+.game-card:nth-child(1) { border-color: var(--orange); } .game-card:nth-child(2) { border-color: var(--red); }
+.game-card:nth-child(3) { border-color: #e9c46a; }      .game-card:nth-child(4) { border-color: var(--green); }
+.game-card:nth-child(5) { border-color: var(--blue); }  .game-card:nth-child(6) { border-color: var(--purple); }
+.game-card:nth-child(7) { border-color: var(--pink); }
+.gc-preview { display: block; width: 100%; aspect-ratio: 16 / 10; object-fit: cover; border-radius: 14px; border: 3px solid rgba(0,0,0,.12); background: #7ccc5a; transition: transform .2s; }
+.gc-row { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 8px; }
+.gc-emoji { font-size: 30px; line-height: 1; }
+.gc-name { font-size: 21px; font-weight: 700; color: var(--title); line-height: 1.1; }
+.gc-blurb { font-size: 15px; color: var(--brown); line-height: 1.25; margin-top: 2px; }
+.gc-teach { margin-top: 8px; font-size: 13px; font-weight: 700; color: var(--green-deep); background: #e8f5df; padding: 3px 10px; border-radius: 999px; }
+@media (hover: hover) { .game-card:hover { transform: translateY(-5px) rotate(-1deg); box-shadow: 0 14px 0 rgba(0,0,0,.12); } .game-card:hover .gc-preview { transform: scale(1.03); } }
+.hub-box .tiny { margin-top: 12px; }
+@media (max-width: 900px) { .hub-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 560px) { .hub-box { padding: 16px 12px; border-radius: 28px; } .hub-grid { gap: 10px; } .gc-name { font-size: 18px; } .gc-blurb { font-size: 13px; } }
+
+/* ---------- sound ---------- */
+#sound { padding: 60px 0 70px; }
+#sound .head { --c: var(--purple); }
+.listen { display: flex; align-items: center; justify-content: center; gap: 26px; flex-wrap: wrap; margin-bottom: 36px; }
+.listen .talker { height: 140px; width: auto; transform-origin: 50% 100%; }
+.listen .talker.on { animation: talk .5s ease-in-out infinite; }
+@keyframes talk { 0%,100% { transform: scale(1,1); } 50% { transform: scale(1.04,.96) translateY(3px); } }
+.listen .ctrl { display: flex; flex-direction: column; align-items: center; gap: 14px; max-width: 520px; }
+.listen .big-btn { font-size: 26px; padding: 14px 26px; }
+.listen .subtitle { font-size: 22px; min-height: 2.5em; display: flex; align-items: center; }
+.says { display: flex; flex-wrap: wrap; justify-content: center; gap: 18px 10px; max-width: 900px; margin: 0 auto; }
+.says button { background: none; border: 0; padding: 0; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 6px; min-width: 104px; }
+.says img { height: 68px; width: auto; transform-origin: 50% 100%; }
+.says button.poke img { animation: poke .6s cubic-bezier(.2,1.8,.4,1); }
+@keyframes poke { 30% { transform: scale(1.15,.85); } 60% { transform: scale(.92,1.08); } }
+.says span { background: #fff; border: 4px solid var(--c); border-radius: 30px; padding: 4px 12px; font-size: 17px; font-weight: 700; color: var(--brown); white-space: nowrap; box-shadow: 0 4px 0 rgba(0,0,0,.12); transition: transform .14s cubic-bezier(.2,1.8,.4,1); }
+.says button:active span { transform: translateY(3px); }
+.says button.poke span { animation: wiggle .5s; }
+.says .hint { width: 100%; text-align: center; font-size: 18px; color: var(--brown-deep); margin-top: 4px; }
+.says .hint b { color: var(--red-deep); }
+
+/* ---------- for grown-ups ---------- */
+#parents { padding: 60px 0 70px; }
+.parents { width: min(1000px, 100% - 24px); border-color: var(--blue); text-align: left; animation: none; }
+.parents .splash-h, .parents .tag { text-align: center; }
+.parents .two { margin-top: 20px; gap: 28px 36px; }
+.parents .howto { margin: 0; font-size: 18px; }
+.parents .howto li { margin: 10px 0; animation: none; }
+.parents h3 { font-size: 24px; color: var(--title); margin-bottom: 14px; }
+.steps { list-style: none; padding: 0; margin: 0; display: grid; gap: 14px; }
+.steps li { display: flex; gap: 14px; align-items: flex-start; font-size: 18px; }
+.steps .num-btn { flex: none; width: 44px; height: 44px; font-size: 22px; border-radius: 12px; border-width: 3px; box-shadow: 0 4px 0 rgba(0,0,0,.25); cursor: default; }
+.steps b { color: var(--red-deep); }
+.parents .barn-hint { margin-top: 18px; display: block; font-size: 18px; line-height: 1.35; }
+
+/* ---------- the end: tap to play ---------- */
+.cta { padding: 60px 0 0; text-align: center; }
+.cta .tap-hint { margin-bottom: 26px; }
+.cta .url { margin-top: 22px; font-size: 18px; color: var(--brown); }
+.parade { position: relative; height: calc(150px * var(--k)); margin-top: 20px; overflow: hidden; }
+.parade .walk { position: absolute; bottom: 0; display: flex; align-items: flex-end; gap: 36px; left: 0; animation: parade 38s linear infinite; }
+.parade .walk img { height: calc(var(--h) * var(--k)); width: auto; animation: waddle .5s ease-in-out infinite alternate; }
+.parade .walk img:nth-child(2n) { animation-delay: -.25s; }
+@keyframes parade { from { transform: translateX(-100%); } to { transform: translateX(100vw); } }
+@keyframes waddle { from { transform: rotate(-3deg) translateY(0); } to { transform: rotate(3deg) translateY(-4px); } }
+.parade .fence { position: absolute; left: 0; right: 0; bottom: 0; height: calc(40px * var(--k)); background: url('/landing-page/sprites/fence.png') repeat-x left bottom / auto 100%; opacity: .9; }
+
+footer { padding: 28px 0 44px; font-size: 16px; color: var(--brown-deep); }
+footer .wrap { display: grid; gap: 14px; text-align: center; }
+footer nav { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 12px; }
+footer nav a { background: #fff; color: var(--brown); text-decoration: none; font-weight: 700; border: 3px solid var(--yellow); border-radius: 999px; padding: 4px 14px; box-shadow: 0 4px 0 rgba(0,0,0,.12); }
+footer p { max-width: 70ch; margin: 0 auto; }
+
+/* ?og: the share picture (landing-page/img/og.jpg is a 1200x630 capture of this) */
+html.og .hud, html.og .howto, html.og .pills, html.og .tiny, html.og .bfly { display: none; }
+html.og .hero { padding-top: 14px; }
+html.og .splash-box { padding-bottom: 20px; }
+html.og .ground { margin-top: -120px; height: 300px; }
+html.og .ground .barn { left: 82%; }
+html.og .ground .tractor { left: 12%; }
+html.og .ground .cow { left: 30%; display: none; }
+
+@media (max-width: 760px) { :root { --k: .72; } .row { --k: .62; } }
+@media (max-width: 480px) { :root { --k: .6; } .row { --k: .42; } .pills .dev { display: none; } }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
-  .btn, .hero .shot { transition: none; }
-  .player.on .bars i { animation: none; height: 16px; }
+  *, *::before, *::after { animation-duration: .001s !important; animation-iteration-count: 1 !important; transition-duration: 0s !important; }
+  .pop { opacity: 1; transform: none; }
 }
 </style>
 </head>
 <body>
 
-<header class="top">
+<header class="hud">
   <div class="wrap">
-    <a class="brand" href="/landing-page"><img src="/icons/icon-192.png" width="40" height="40" alt="">Sunny Barn Farm</a>
-    <nav class="nav" aria-label="Page">
-      <a href="#inside">What's inside</a>
-      <a href="#games">Mini-games</a>
-      <a href="#parents">For parents</a>
-      <a class="btn" href="/">▶ Play</a>
+    <a class="title-pill" href="/landing-page"><span class="e">🐄</span>Sunny Barn Farm<span class="e">🐔</span></a>
+    <span class="star-pill">⭐ Free</span>
+    <nav aria-label="Page">
+      <a class="hud-btn x" href="#inside" title="What's on the farm" aria-label="What's on the farm">🏡</a>
+      <a class="hud-btn" href="#games" title="Mini-games" aria-label="Mini-games">🎮</a>
+      <a class="hud-btn x" href="#sound" title="Sounds" aria-label="Sounds">🔊</a>
+      <a class="hud-btn q" href="#parents" title="For grown-ups" aria-label="For grown-ups">❓</a>
+      <a class="big-btn quiz" href="/">▶ Play</a>
     </nav>
   </div>
 </header>
 
-<section class="hero" aria-labelledby="title">
-  <div class="wrap">
-    <div>
-      <span class="eyebrow">Free · No ads · <b>Ages 1–5</b></span>
-      <h1 id="title">Sunny Barn Farm</h1>
-      <p class="lead">A gentle first farm game. Tap the animals to hear their real sounds and learn their names, watch the day turn to night, and count the sleeping animals in the big red barn. A friendly narrator does all the reading.</p>
-      <div class="cta">
-        <a class="btn btn-big" href="/">▶ Play now</a>
-        <a class="btn btn-ghost btn-big" href="#inside">See what's inside</a>
-      </div>
-      <div class="trust">
-        <span>Nothing to read</span>
-        <span>Works offline</span>
-        <span>Phone, tablet or desktop</span>
-      </div>
+<!-- ===== the start screen, sitting on the farm ===== -->
+<section class="hero sky" aria-labelledby="title">
+  <img class="sun sp" src="/landing-page/sprites/sun.png" alt="" width="452" height="404">
+  <img class="cloud c1 sp" src="/landing-page/sprites/cloud.png" alt="" width="328" height="214">
+  <img class="cloud c2 sp" src="/landing-page/sprites/cloud.png" alt="" width="328" height="214">
+  <img class="cloud c3 sp" src="/landing-page/sprites/cloud.png" alt="" width="328" height="214">
+  <img class="bfly b1 sp" src="/landing-page/sprites/butterfly.png" alt="" width="100" height="67">
+  <img class="bfly b2 sp" src="/landing-page/sprites/butterfly-2.png" alt="" width="98" height="67">
+
+  <div class="splash-box">
+    <h1 id="title">🐄 Sunny Barn Farm 🐔</h1>
+    <p class="tag">A farm to explore, listen to, and count on! <span class="ages">Ages 1–5</span></p>
+    <div class="row" role="img" aria-label="Cow, horse, pig, sheep, chicken, duck and cat">
+      <img class="an sp" src="/landing-page/sprites/cow.png" alt="">
+      <img class="an sp" src="/landing-page/sprites/horse.png" alt="">
+      <img class="an sp" src="/landing-page/sprites/pig.png" alt="">
+      <img class="an sp" src="/landing-page/sprites/sheep.png" alt="">
+      <img class="an sp" src="/landing-page/sprites/chicken.png" alt="">
+      <img class="an sp" src="/landing-page/sprites/duck.png" alt="">
+      <img class="an sp" src="/landing-page/sprites/cat.png" alt="">
     </div>
-    <div class="shot">
-      <img src="/landing-page/img/farm-day.jpg" width="1600" height="1000" fetchpriority="high" alt="The farm on a sunny day: a red barn, cows, a horse, pigs in the mud, chickens by the coop, cats, ducks on the pond and a tractor.">
-    </div>
+    <ul class="howto">
+      <li><span>👆</span><div>Tap an animal to hear its <b>name</b> and <b>sound</b></div></li>
+      <li><span>✌️</span><div>Tap it <b>twice</b> to see it do a trick</div></li>
+      <li><span>🏠</span><div>Tap the <b>big red barn</b> to go inside</div></li>
+      <li><span>🌞🌙</span><div>Use the sun / moon button to change day and night</div></li>
+      <li><span>🔢</span><div>At <b>night</b>, count the sleeping animals in the barn!</div></li>
+      <li><span>🎮</span><div><b>Seven</b> mini-games, one friendly narrator</div></li>
+    </ul>
+    <a class="start" href="/">▶ Let's Play!</a>
+    <p class="tiny">Turn your sound on! 🔊</p>
+    <div class="pills"><span>🆓 Free</span><span>🚫 No ads</span><span>📖 Nothing to read</span><span>✈️ Works offline</span><span class="dev">📱 Phone, tablet or desktop</span></div>
   </div>
-  <svg class="hill" viewBox="0 0 1440 110" preserveAspectRatio="none" aria-hidden="true">
-    <path d="M0,60 C240,110 480,10 720,55 C960,100 1200,20 1440,65 L1440,110 L0,110 Z" fill="#fff8e8"/>
-  </svg>
+
+  <div class="ground" aria-hidden="true">
+    <svg class="hills" viewBox="0 0 1440 330" preserveAspectRatio="none">
+      <path d="M0,150 C200,90 380,100 560,140 C760,185 900,70 1100,110 C1260,142 1360,110 1440,120 L1440,330 L0,330 Z" fill="#9ad66a"/>
+      <path d="M0,150 C200,90 380,100 560,140 C760,185 900,70 1100,110 C1260,142 1360,110 1440,120" fill="none" stroke="#4a2f1a" stroke-width="4"/>
+      <path d="M0,215 C240,170 420,230 640,205 C860,180 1040,235 1240,200 C1340,183 1400,190 1440,195 L1440,330 L0,330 Z" fill="#7fc24a"/>
+      <path d="M0,215 C240,170 420,230 640,205 C860,180 1040,235 1240,200 C1340,183 1400,190 1440,195" fill="none" stroke="#4a2f1a" stroke-width="4"/>
+    </svg>
+    <img class="sp windmill" src="/landing-page/sprites/windmill.png" alt="">
+    <img class="sp scarecrow" src="/landing-page/sprites/scarecrow.png" alt="">
+    <img class="sp tree" src="/landing-page/sprites/tree.png" alt="">
+    <img class="sp flowers" src="/landing-page/sprites/flowers.png" alt="">
+    <img class="sp cow" src="/landing-page/sprites/cow-happy.png" alt="">
+    <img class="sp hay" src="/landing-page/sprites/hay.png" alt="">
+    <img class="sp hay2" src="/landing-page/sprites/hay-round.png" alt="">
+    <img class="sp barn" src="/landing-page/sprites/barn.png" alt="">
+    <img class="sp dog" src="/landing-page/sprites/dog.png" alt="">
+    <img class="sp flowers2" src="/landing-page/sprites/flowers.png" alt="">
+    <img class="sp sheep" src="/landing-page/sprites/sheep.png" alt="">
+    <img class="sp tractor" src="/landing-page/sprites/tractor.png" alt="">
+    <img class="sp tree2" src="/landing-page/sprites/tree-branch.png" alt="">
+    <img class="sp chicken" src="/landing-page/sprites/chicken.png" alt="">
+    <img class="sp coop" src="/landing-page/sprites/coop.png" alt="">
+    <div class="fence"></div>
+  </div>
 </section>
 
-<section id="inside" aria-labelledby="inside-h">
+<!-- ===== what's on the farm ===== -->
+<section id="inside" class="field" aria-labelledby="inside-h">
   <div class="wrap">
-    <div class="sec-head">
-      <span class="kicker">What's on the farm</span>
-      <h2 id="inside-h">Tap, listen, count</h2>
-      <p>Everything a one-year-old can do is a tap. Everything a four-year-old wants is in there too.</p>
+    <div class="card head pop" style="--c: var(--orange)">
+      <div class="emoji">👆</div>
+      <div><h2 class="card-name" id="inside-h">Tap, listen, count!</h2><p class="card-sub">Everything a one-year-old can do is a <b>tap</b>. Everything a four-year-old wants is in there too.</p></div>
     </div>
-    <div class="cards">
-      <article class="card" style="--c:#ffe9e3">
-        <div class="ico">🐄</div>
-        <h3>Tap an animal</h3>
-        <p><q>Cow! This is a cow. The cow says Moo!</q> A big name card, a real recording of the animal, and a trick on the second tap: the pig rolls in the mud, the chicken lays an egg, the duck dives.</p>
+    <div class="grid4">
+      <article class="card feat pop" style="--c: var(--red)">
+        <div class="pic"><img class="sp" src="/landing-page/sprites/cow-happy.png" alt="" style="height:118px"></div>
+        <h3 class="card-name">Tap an animal</h3>
+        <p>A big name card, the animal's <b>real call</b>, and a trick on the second tap: the pig rolls in the mud, the chicken lays an egg, the duck dives.</p>
+        <div class="subtitle">“Cow! This is a cow. The cow says Moo!”</div>
       </article>
-      <article class="card" style="--c:#e4e9ff">
-        <div class="ico">🌙</div>
-        <h3>Day turns to night</h3>
+      <article class="card feat pop" style="--c: var(--purple)">
+        <div class="pic"><img class="sp sunmoon" src="/landing-page/sprites/sun.png" alt="" style="height:88px"><img class="sp sunmoon" src="/landing-page/sprites/moon.png" alt="" style="height:88px;animation-delay:-2s"></div>
+        <h3 class="card-name">Day turns to night</h3>
         <p>At dusk the animals walk into the barn and the doors close. Fireflies come out, an owl hoots in the tree, frogs croak on the lily pads, and a music-box lullaby takes over from the banjo.</p>
       </article>
-      <article class="card" style="--c:#fff2c9">
-        <div class="ico">🧮</div>
-        <h3>Count them to sleep</h3>
-        <p>Inside the barn the animals snore in little rows. Tap each one and the narrator counts with you: <q>One… two… three! There are three pigs!</q> The quiz then zooms in on just the cats, so there is only one thing to count.</p>
+      <article class="card feat pop" style="--c: var(--yellow)">
+        <div class="pic"><img class="sp" src="/landing-page/sprites/pig-sleep.png" alt="" style="height:64px"><img class="sp" src="/landing-page/sprites/pig-sleep.png" alt="" style="height:64px"><img class="sp" src="/landing-page/sprites/pig-sleep.png" alt="" style="height:64px"><span class="zz">z z</span></div>
+        <h3 class="card-name">Count them to sleep</h3>
+        <p>Inside the barn the animals snore in little rows. Tap each one and the narrator counts with you: <b>one… two… three!</b> Then a quiz with just the pigs to count.</p>
       </article>
-      <article class="card" style="--c:#e8f5df">
-        <div class="ico">⭐</div>
-        <h3>Collect stars</h3>
-        <p>Every count, quiz answer and listening round earns a star, and they are kept between visits. Count every animal in the barn for a three-star firework show.</p>
+      <article class="card feat pop" style="--c: var(--green)">
+        <div class="pic"><img class="sp fly" src="/landing-page/sprites/star.png" alt="" style="height:70px"><img class="sp fly" src="/landing-page/sprites/star.png" alt="" style="height:50px;animation-delay:-1s"><img class="sp fly" src="/landing-page/sprites/star.png" alt="" style="height:62px;animation-delay:-2s"></div>
+        <h3 class="card-name">Collect stars</h3>
+        <p>Every count, quiz answer and listening round earns a star, kept between visits. Count every animal in the barn for a <b>three-star firework show</b>.</p>
+        <span class="star-pill">⭐ 12</span>
       </article>
     </div>
   </div>
 </section>
 
+<!-- ===== night ===== -->
 <section class="night" aria-labelledby="night-h">
+  <div class="stars" aria-hidden="true"></div>
+  <img class="moon sp" src="/landing-page/sprites/moon.png" alt="" width="522" height="522">
   <div class="wrap">
-    <div class="sec-head">
-      <span class="kicker">After dark</span>
-      <h2 id="night-h">The farm goes to bed</h2>
-      <p>Night comes by itself every couple of minutes, or at the tap of the 🌞 button. It is the calmest part of the game, and the part where the counting happens.</p>
+    <div class="card head pop">
+      <div class="emoji">🌙</div>
+      <div><h2 class="card-name" id="night-h">The farm goes to bed</h2><p class="card-sub">Night comes by itself every couple of minutes, or at a tap of the 🌞 button. It is the calmest part of the game, and where the <b>counting</b> happens.</p></div>
+    </div>
+    <div class="scene" aria-hidden="true">
+      <img class="sp treeb" src="/landing-page/sprites/tree-branch.png" alt="">
+      <img class="sp owl" src="/landing-page/sprites/owl.png" alt="">
+      <img class="sp barnn" src="/landing-page/sprites/barn-night.png" alt="">
+      <img class="sp sleep s1" src="/landing-page/sprites/cow-sleep.png" alt="">
+      <img class="sp sleep s2" src="/landing-page/sprites/sheep-sleep.png" alt="">
+      <img class="sp sleep s3" src="/landing-page/sprites/dog-sleep.png" alt="">
+      <img class="sp sleep s4" src="/landing-page/sprites/cat-sleep.png" alt="">
+      <span class="zz z1">z z z</span><span class="zz z2">z z</span>
+      <img class="sp lily" src="/landing-page/sprites/lily.png" alt="">
+      <img class="sp frog" src="/landing-page/sprites/frog.png" alt="">
+      <img class="sp pine" src="/landing-page/sprites/pine.png" alt="">
+      <div class="ground-line"></div>
     </div>
     <div class="two">
-      <figure>
-        <div class="shot"><img src="/landing-page/img/farm-night.jpg" width="1280" height="800" loading="lazy" alt="The farm at night: the barn lit from inside, fireflies over the grass, frogs on the lily pads and an owl in the tree."></div>
-        <figcaption>Fireflies, frogs, an owl and crickets. Tap the owl and he hoots back.</figcaption>
+      <figure class="pop">
+        <div class="shot" style="--c: var(--blue)"><img src="/landing-page/img/farm-night.jpg" width="1280" height="800" loading="lazy" alt="The farm at night: the barn lit from inside, fireflies over the grass, frogs on the lily pads and an owl in the tree."></div>
+        <figcaption class="barn-hint">🦉 Tap the owl and he hoots back!</figcaption>
       </figure>
-      <figure>
-        <div class="shot"><img src="/landing-page/img/barn-night.jpg" width="1280" height="800" loading="lazy" alt="Inside the barn at night: horses, cows, pigs, sheep, a goat, chickens, ducks, a dog and cats all asleep in their pens under a moonlit window."></div>
-        <figcaption>Inside, everyone is asleep in rows. Tap to count, tap twice to wake one up for a moment.</figcaption>
+      <figure class="pop">
+        <div class="shot" style="--c: var(--yellow)"><img src="/landing-page/img/barn-night.jpg" width="1280" height="800" loading="lazy" alt="Inside the barn at night: horses, cows, pigs, sheep, a goat, chickens, ducks, a dog and cats all asleep in their pens under a moonlit window."></div>
+        <figcaption class="barn-hint">🌙 Tap the sleeping animals to count them!</figcaption>
       </figure>
+    </div>
+
+    <div class="quiz pop" id="quiz">
+      <div class="pigs" aria-hidden="true"><img class="sp" src="/landing-page/sprites/pig-sleep.png" alt=""><img class="sp" src="/landing-page/sprites/pig-sleep.png" alt=""><img class="sp" src="/landing-page/sprites/pig-sleep.png" alt=""></div>
+      <div class="quiz-q" id="quiz-q">How many pigs are sleeping?</div>
+      <div class="quiz-choices" role="group" aria-labelledby="quiz-q">
+        <button class="num-btn" type="button" data-n="1" style="--c: var(--red)">1</button>
+        <button class="num-btn" type="button" data-n="2" style="--c: var(--blue)">2</button>
+        <button class="num-btn" type="button" data-n="3" style="--c: var(--green)">3</button>
+        <button class="num-btn" type="button" data-n="4" style="--c: var(--orange)">4</button>
+      </div>
+      <div class="subtitle" id="quiz-say" hidden aria-live="polite"></div>
+      <button class="big-btn soft" id="quiz-again" type="button" hidden>🔄 Count Again</button>
     </div>
   </div>
 </section>
 
-<section id="games" aria-labelledby="games-h">
+<!-- ===== the mini-game picker ===== -->
+<section id="games" class="sunset" aria-labelledby="games-h">
+  <div class="hub-box pop">
+    <h2 class="splash-h" id="games-h">🐄 Mini-Games 🐔</h2>
+    <p class="tag">Pick a game! <span class="hub-stars">⭐ 7 games</span></p>
+    <div class="hub-grid">
+      <a class="game-card" href="/minigames/">
+        <img class="gc-preview" src="/landing-page/img/mini-veggie.jpg" width="1280" height="800" loading="lazy" alt="Veggie Patch: a crate of corn, carrot and tomato below a garden bed with shaped holes.">
+        <span class="gc-row"><span class="gc-emoji">🥕</span><span class="gc-name">Veggie Patch</span></span>
+        <span class="gc-blurb">Match each vegetable to its shape</span>
+        <span class="gc-teach">Shapes · colour words</span>
+      </a>
+      <a class="game-card" href="/minigames/">
+        <img class="gc-preview" src="/landing-page/img/mini-tractor.jpg" width="1280" height="800" loading="lazy" alt="Tractor Ride: a red tractor with a trailer in a field with hay bales, puddles, sheep, chickens and a dog.">
+        <span class="gc-row"><span class="gc-emoji">🚜</span><span class="gc-name">Tractor Ride</span></span>
+        <span class="gc-blurb">Drive! Collect the hay and bring it to the barn</span>
+        <span class="gc-teach">Cause &amp; effect · counting</span>
+      </a>
+      <a class="game-card" href="/minigames/">
+        <img class="gc-preview" src="/landing-page/img/mini-piglets.jpg" width="1280" height="800" loading="lazy" alt="Runaway Piglets: two piglets running across a field away from their sty while a dog watches.">
+        <span class="gc-row"><span class="gc-emoji">🐷</span><span class="gc-name">Runaway Piglets</span></span>
+        <span class="gc-blurb">Catch the piglets before they get away!</span>
+        <span class="gc-teach">Tracking · reflexes</span>
+      </a>
+      <a class="game-card" href="/minigames/">
+        <img class="gc-preview" src="/landing-page/img/mini-hide.jpg" width="1280" height="800" loading="lazy" alt="Hide and Seek: the narrator asks where the horse is, and the horse peeks out of a bush beside a tree, a hay pile, a tractor and a pond.">
+        <span class="gc-row"><span class="gc-emoji">🔍</span><span class="gc-name">Hide &amp; Seek</span></span>
+        <span class="gc-blurb">Who is hiding? Find the animals around the farm</span>
+        <span class="gc-teach">Observation · listening</span>
+      </a>
+      <a class="game-card" href="/minigames/">
+        <img class="gc-preview" src="/landing-page/img/mini-stars.jpg" width="1280" height="800" loading="lazy" alt="Star Animals: numbered stars in a night sky with a sleepy moon.">
+        <span class="gc-row"><span class="gc-emoji">⭐</span><span class="gc-name">Star Animals</span></span>
+        <span class="gc-blurb">Join the stars 1, 2, 3… and see who appears</span>
+        <span class="gc-teach">Number order 1–7</span>
+      </a>
+      <a class="game-card" href="/minigames/">
+        <img class="gc-preview" src="/landing-page/img/mini-band.jpg" width="1280" height="800" loading="lazy" alt="Farm Band: a cow, pig, sheep, dog, chicken and rooster standing on coloured drums.">
+        <span class="gc-row"><span class="gc-emoji">🎵</span><span class="gc-name">Farm Band</span></span>
+        <span class="gc-blurb">Make music, then copy the rooster's tune</span>
+        <span class="gc-teach">Cause &amp; effect · memory</span>
+      </a>
+      <a class="game-card" href="/minigames/">
+        <img class="gc-preview" src="/landing-page/img/mini-bath.jpg" width="1280" height="800" loading="lazy" alt="Muddy Pig Bath: a very muddy pig sitting in a bathtub with a rubber duck and a sponge.">
+        <span class="gc-row"><span class="gc-emoji">🐷</span><span class="gc-name">Muddy Pig Bath</span></span>
+        <span class="gc-blurb">Scrub the muddy pig until he shines</span>
+        <span class="gc-teach">Motor control · clean &amp; dirty</span>
+      </a>
+    </div>
+    <a class="big-btn soft" href="/">🏡 Back to the farm</a>
+    <p class="tiny">Tap 🎮 on the farm to pick one. Stars earned here count on the farm too.</p>
+  </div>
+</section>
+
+<!-- ===== sound ===== -->
+<section id="sound" class="field" aria-labelledby="sound-h">
   <div class="wrap">
-    <div class="sec-head">
-      <span class="kicker">Mini-games</span>
-      <h2 id="games-h">Seven little games, one farm</h2>
-      <p>Each one teaches a different thing, drawn in the farm's own art and spoken by the farm's own narrator. Tap 🎮 on the farm to pick one. Stars earned here count on the farm too.</p>
+    <div class="card head pop">
+      <div class="emoji">🔊</div>
+      <div><h2 class="card-name" id="sound-h">Real animals, a real voice</h2><p class="card-sub">Every animal is a <b>real recording</b>, and the narrator has a warm voice that names, counts and cheers. Banjo and birdsong by day; crickets, an owl and a lullaby by night.</p></div>
     </div>
-    <div class="games">
-      <article class="game">
-        <img src="/landing-page/img/mini-band.jpg" width="1280" height="800" loading="lazy" alt="Farm Band: a cow, pig, sheep, dog, chicken and rooster standing on coloured drums.">
-        <div class="body"><h3>🎵 Farm Band</h3><p>Five animals on coloured drums. Every tap is a banjo note, so anything bashed out sounds like a tune. Copy the rooster's tune for a concert.</p><span class="teach">Cause &amp; effect · memory</span></div>
-      </article>
-      <article class="game">
-        <img src="/landing-page/img/mini-stars.jpg" width="1280" height="800" loading="lazy" alt="Star Animals: numbered stars in a night sky with a sleepy moon.">
-        <div class="body"><h3>⭐ Star Animals</h3><p>Night-sky dot-to-dot. Join the stars one, two, three and the lines light up; finish, and a real animal fades into the constellation to say hello.</p><span class="teach">Number order 1–7</span></div>
-      </article>
-      <article class="game">
-        <img src="/landing-page/img/mini-tractor.jpg" width="1280" height="800" loading="lazy" alt="Tractor Ride: a red tractor with a trailer in a field with hay bales, puddles, sheep, chickens and a dog.">
-        <div class="body"><h3>🚜 Tractor Ride</h3><p>Tap anywhere and the tractor drives there, trailer bouncing behind. Scoop up the hay bales, splash through puddles, honk at the dog, then deliver the load to the barn.</p><span class="teach">Cause &amp; effect · counting</span></div>
-      </article>
-      <article class="game">
-        <img src="/landing-page/img/mini-veggie.jpg" width="1280" height="800" loading="lazy" alt="Veggie Patch: a crate of corn, carrot and tomato below a garden bed with shaped holes.">
-        <div class="body"><h3>🥕 Veggie Patch</h3><p>Drag vegetables from the crate into the shaped holes in the scarecrow's garden. Round three puts carrot and pumpkin, both orange, together, so the shape has to do the work.</p><span class="teach">Shapes · colour words</span></div>
-      </article>
-      <article class="game">
-        <img src="/landing-page/img/mini-hide.jpg" width="1280" height="800" loading="lazy" alt="Hide and Seek: the narrator asks where the horse is, and the horse peeks out of a bush beside a tree, a hay pile, a tractor and a pond.">
-        <div class="body"><h3>🔍 Hide &amp; Seek</h3><p><q>Where's the cow?</q> Behind the tree, in the hay with her ears showing, or in the pond with her eyes above the water. Stuck? After a moment she moos.</p><span class="teach">Observation · listening</span></div>
-      </article>
-      <article class="game">
-        <img src="/landing-page/img/mini-piglets.jpg" width="1280" height="800" loading="lazy" alt="Runaway Piglets: two piglets running across a field away from their sty while a dog watches.">
-        <div class="body"><h3>🐷 Runaway Piglets</h3><p>The piglets have escaped! Tap one to catch it and it floats back to the sty. They get faster each round, and the dog's bark freezes them for a moment.</p><span class="teach">Tracking · reflexes</span></div>
-      </article>
-      <article class="game">
-        <img src="/landing-page/img/mini-bath.jpg" width="1280" height="800" loading="lazy" alt="Muddy Pig Bath: a very muddy pig sitting in a bathtub with a rubber duck and a sponge.">
-        <div class="body"><h3>🛁 Muddy Pig Bath</h3><p>Rub anywhere and the sponge wipes the mud off a huge pig, with bubbles and giggles. Clean, he jumps for joy, then rolls in the mud again.</p><span class="teach">Motor control · clean &amp; dirty</span></div>
-      </article>
-    </div>
-  </div>
-</section>
-
-<section class="alt" id="sound" aria-labelledby="sound-h">
-  <div class="wrap sound">
-    <div>
-      <span class="kicker">Sound</span>
-      <h2 id="sound-h">Real animals, a real voice</h2>
-      <p class="sec-head" style="margin:12px 0 0">Every animal is a real recording, and the narrator has a warm, natural voice that names, counts and cheers. By day there is a banjo tune and birdsong; by night, crickets, an owl and a lullaby. Turn the sound on 🔊 before the first tap and let the farm do the talking.</p>
-    </div>
-    <div class="player" id="player">
-      <button class="play" id="play" type="button" aria-pressed="false" aria-label="Play a 30-second sample of the narrator">▶</button>
-      <div>
-        <strong>Hear the narrator</strong>
-        <small>Six lines from the game, 30 seconds.</small>
-        <div class="bars" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+    <div class="listen pop">
+      <img class="talker sp" id="talker" src="/landing-page/sprites/cow-happy.png" alt="">
+      <div class="ctrl">
+        <button class="big-btn listen" id="play" type="button" aria-pressed="false">🎧 Hear the narrator</button>
+        <div class="subtitle" id="sub">Six lines from the game, 30 seconds.</div>
       </div>
       <audio id="sample" preload="none" src="/landing-page/narrator-sample.m4a"></audio>
     </div>
+    <div class="says pop" id="says">
+      <p class="hint">Tap an animal to hear its <b>real</b> call, straight from the game 👇</p>
+      <button type="button" data-sfx="cow" style="--c: var(--red)"><img class="sp" src="/landing-page/sprites/cow.png" alt=""><span>🐄 Moo!</span></button>
+      <button type="button" data-sfx="horse" style="--c: var(--orange)"><img class="sp" src="/landing-page/sprites/horse.png" alt=""><span>🐴 Neigh!</span></button>
+      <button type="button" data-sfx="pig" style="--c: var(--pink)"><img class="sp" src="/landing-page/sprites/pig.png" alt=""><span>🐷 Oink!</span></button>
+      <button type="button" data-sfx="sheep" style="--c: var(--blue)"><img class="sp" src="/landing-page/sprites/sheep.png" alt=""><span>🐑 Baa!</span></button>
+      <button type="button" data-sfx="goat" style="--c: var(--green)"><img class="sp" src="/landing-page/sprites/goat.png" alt=""><span>🐐 Meh-eh!</span></button>
+      <button type="button" data-sfx="dog" style="--c: var(--yellow)"><img class="sp" src="/landing-page/sprites/dog.png" alt=""><span>🐶 Woof!</span></button>
+      <button type="button" data-sfx="cat" style="--c: var(--purple)"><img class="sp" src="/landing-page/sprites/cat.png" alt=""><span>🐱 Meow!</span></button>
+      <button type="button" data-sfx="chicken" style="--c: var(--orange)"><img class="sp" src="/landing-page/sprites/chicken.png" alt=""><span>🐔 Bok bok!</span></button>
+      <button type="button" data-sfx="rooster" style="--c: var(--red)"><img class="sp" src="/landing-page/sprites/rooster.png" alt=""><span>🐓 Doodle-doo!</span></button>
+      <button type="button" data-sfx="duck" style="--c: var(--blue)"><img class="sp" src="/landing-page/sprites/duck.png" alt=""><span>🦆 Quack!</span></button>
+      <button type="button" data-sfx="owl" style="--c: var(--purple)"><img class="sp" src="/landing-page/sprites/owl.png" alt=""><span>🦉 Hoo hoo!</span></button>
+      <button type="button" data-sfx="frog" style="--c: var(--green)"><img class="sp" src="/landing-page/sprites/frog.png" alt=""><span>🐸 Ribbit!</span></button>
+    </div>
   </div>
 </section>
 
-<section id="parents" aria-labelledby="parents-h">
-  <div class="wrap">
-    <div class="sec-head">
-      <span class="kicker">For parents</span>
-      <h2 id="parents-h">Made for little hands</h2>
-      <p>Built for a one-year-old on a parent's phone and a four-year-old on the family tablet, and nothing in between to trip over.</p>
-    </div>
+<!-- ===== for grown-ups ===== -->
+<section id="parents" class="sky" aria-labelledby="parents-h">
+  <div class="splash-box parents pop">
+    <h2 class="splash-h" id="parents-h">👨‍👩‍👧 For grown-ups</h2>
+    <p class="tag">Made for little hands</p>
     <div class="two">
-      <div class="box">
-        <h3>What you can count on</h3>
-        <ul class="list">
-          <li>Nothing to read. The narrator runs everything, so it works before letters do.</li>
-          <li>No fail states. A wrong answer is a gentle <q>let's count them together</q>, then another go.</li>
-          <li>Big targets. Every animal has an extra-large touch area, and the buttons grow on small screens.</li>
-          <li>No ads, no in-app purchases, no accounts, nothing collected. Stars are saved on the device only.</li>
-          <li>Plays offline after the first visit, so it works in the car.</li>
-          <li>Best in landscape on a phone or tablet. It works on a desktop too.</li>
-        </ul>
-      </div>
-      <div class="box">
-        <h3>Put it on the home screen</h3>
+      <ul class="howto">
+        <li><span>📖</span><div><b>Nothing to read.</b> The narrator runs everything, so it works before letters do.</div></li>
+        <li><span>💚</span><div><b>No fail states.</b> A wrong answer is a gentle “let's count them together”, then another go.</div></li>
+        <li><span>🖐️</span><div><b>Big targets.</b> Every animal has an extra-large touch area, and the buttons grow on small screens.</div></li>
+        <li><span>🚫</span><div><b>No ads</b>, no in-app purchases, no accounts, nothing collected. Stars are saved on the device only.</div></li>
+        <li><span>🚗</span><div><b>Plays offline</b> after the first visit, so it works in the car.</div></li>
+        <li><span>📱</span><div>Best in <b>landscape</b> on a phone or tablet. Works on a desktop too.</div></li>
+      </ul>
+      <div>
+        <h3>📲 Put it on the home screen</h3>
         <ol class="steps">
-          <li><span><strong>iPhone or iPad:</strong> open the game in Safari, tap <strong>Share</strong>, then <strong>Add to Home Screen</strong>.</span></li>
-          <li><span><strong>Android:</strong> open it in Chrome, tap the <strong>⋮</strong> menu, then <strong>Install app</strong> (or <strong>Add to Home screen</strong>).</span></li>
-          <li><span>Open it from the icon and it fills the screen like any other app, sound and all.</span></li>
+          <li><span class="num-btn" style="--c: var(--red)" aria-hidden="true">1</span><div><b>iPhone or iPad:</b> open the game in Safari, tap <b>Share</b>, then <b>Add to Home Screen</b>.</div></li>
+          <li><span class="num-btn" style="--c: var(--blue)" aria-hidden="true">2</span><div><b>Android:</b> open it in Chrome, tap the <b>⋮</b> menu, then <b>Install app</b> (or <b>Add to Home screen</b>).</div></li>
+          <li><span class="num-btn" style="--c: var(--green)" aria-hidden="true">3</span><div>Open it from the icon and it fills the screen like any other app, sound and all.</div></li>
         </ol>
-        <p class="tip">Tip: the first tap on <strong>▶ Let's Play!</strong> is what lets the sound start, so turn the volume up before you hand it over.</p>
+        <div class="barn-hint">💡 The first tap on <b>&nbsp;▶ Let's Play!&nbsp;</b> is what lets the sound start, so turn the volume up before you hand it over.</div>
       </div>
     </div>
   </div>
 </section>
 
-<section class="cta-band" aria-labelledby="go-h">
+<!-- ===== the end ===== -->
+<section class="cta field" aria-labelledby="go-h">
   <div class="wrap">
-    <h2 id="go-h">Ready to visit the farm?</h2>
-    <p>No download, no sign-up. It opens in the browser and plays straight away.</p>
-    <a class="btn btn-big" href="/">▶ Play Sunny Barn Farm</a>
-    <p class="url">farmgamedemo.vercel.app</p>
+    <h2 class="sr" id="go-h">Ready to play?</h2>
+    <div class="tap-hint">👇 Tap to play!</div>
+    <div><a class="start" href="/">▶ Let's Play!</a></div>
+    <p class="url">farmgamedemo.vercel.app · opens in the browser, nothing to install</p>
+  </div>
+  <div class="parade" aria-hidden="true">
+    <div class="walk">
+      <img class="sp" src="/landing-page/sprites/rooster.png" alt="" style="--h: 96px">
+      <img class="sp" src="/landing-page/sprites/cow.png" alt="" style="--h: 110px">
+      <img class="sp" src="/landing-page/sprites/pig.png" alt="" style="--h: 86px">
+      <img class="sp" src="/landing-page/sprites/duck.png" alt="" style="--h: 70px">
+      <img class="sp" src="/landing-page/sprites/duckling.png" alt="" style="--h: 50px">
+      <img class="sp" src="/landing-page/sprites/duckling.png" alt="" style="--h: 50px">
+      <img class="sp" src="/landing-page/sprites/goat.png" alt="" style="--h: 100px">
+      <img class="sp" src="/landing-page/sprites/kitten.png" alt="" style="--h: 52px">
+      <img class="sp" src="/landing-page/sprites/horse.png" alt="" style="--h: 126px">
+      <img class="sp" src="/landing-page/sprites/dog.png" alt="" style="--h: 80px">
+    </div>
+    <div class="fence"></div>
   </div>
 </section>
 
-<footer>
+<footer class="field">
   <div class="wrap">
     <nav aria-label="Links">
-      <a href="/">Play the game</a>
-      <a href="/minigames/">Mini-game showcase</a>
-      <a href="https://github.com/hamzav888/farmgamedemo">Source on GitHub</a>
-      <a href="https://github.com/hamzav888/farmgamedemo/blob/main/CREDITS.md">Sound credits</a>
+      <a href="/">🏡 Play the game</a>
+      <a href="/minigames/">🎮 Mini-game showcase</a>
+      <a href="https://github.com/hamzav888/farmgamedemo">💻 Source on GitHub</a>
+      <a href="https://github.com/hamzav888/farmgamedemo/blob/main/CREDITS.md">🎙️ Sound credits</a>
     </nav>
     <p>Sunny Barn Farm is free and open source. The animal calls, foley and ambience are recordings from Freesound, used under CC0 and CC BY licences and credited in full on GitHub. The Fredoka typeface is used under the SIL Open Font License.</p>
   </div>
@@ -397,15 +757,97 @@ footer nav a:hover { text-decoration: underline; }
 
 <script>
 (function () {
-  var a = document.getElementById('sample'), b = document.getElementById('play'), p = document.getElementById('player');
-  if (!a || !b) return;
-  function set(on) { b.setAttribute('aria-pressed', on ? 'true' : 'false'); b.textContent = on ? '■' : '▶'; p.classList.toggle('on', on); }
+  if (location.search === '?og') document.documentElement.classList.add('og');
+  var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* things pop in as they scroll into view, like the game's cards */
+  var pops = document.querySelectorAll('.pop');
+  if ('IntersectionObserver' in window && !reduce) {
+    var io = new IntersectionObserver(function (es) {
+      es.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+    }, { rootMargin: '0px 0px -8% 0px' });
+    pops.forEach(function (p) { io.observe(p); });
+  } else { pops.forEach(function (p) { p.classList.add('in'); }); }
+
+  /* night sky: stars and fireflies */
+  var night = document.querySelector('.night'), sky = night.querySelector('.stars');
+  for (var i = 0; i < 46; i++) {
+    var s = document.createElement('img'); s.className = 'star sp'; s.src = '/landing-page/sprites/star.png'; s.alt = '';
+    var sz = 6 + Math.random() * 12;
+    s.style.cssText = 'left:' + (Math.random() * 100) + '%;top:' + (Math.random() * 55) + '%;width:' + sz + 'px;height:auto;animation-delay:' + (-Math.random() * 3) + 's;animation-duration:' + (2 + Math.random() * 2.5) + 's';
+    sky.appendChild(s);
+  }
+  for (i = 0; i < 14; i++) {
+    var f = document.createElement('span'); f.className = 'firefly';
+    f.style.cssText = 'left:' + (Math.random() * 100) + '%;top:' + (30 + Math.random() * 65) + '%;animation-delay:' + (-Math.random() * 3) + 's;animation-duration:' + (2.5 + Math.random() * 2) + 's';
+    night.appendChild(f);
+  }
+
+  /* the game's own sound effects, played from the game's own files */
+  var mf = null, mfP = null, last = {};
+  function manifest() { return mfP || (mfP = fetch('/sfx/manifest.json').then(function (r) { return r.ok ? r.json() : null; }).then(function (m) { mf = m; return m; }).catch(function () { return null; })); }
+  function sfx(name, vol) {
+    return manifest().then(function (m) {
+      var t = m && m.sounds[name] && m.sounds[name].takes; if (!t || !t.length) return;
+      var i = Math.floor(Math.random() * t.length); if (t.length > 1 && i === last[name]) i = (i + 1) % t.length; last[name] = i;
+      var a = new Audio('/sfx/' + t[i].f); a.volume = vol || .9; return a.play().catch(function () { });
+    });
+  }
+  var says = document.getElementById('says');
+  says.addEventListener('click', function (e) {
+    var b = e.target.closest('button[data-sfx]'); if (!b) return;
+    b.classList.remove('poke'); void b.offsetWidth; b.classList.add('poke');
+    sfx(b.getAttribute('data-sfx'));
+  });
+  says.addEventListener('pointerenter', function () { manifest(); }, true);
+
+  /* the narrator sample, with the game's subtitle following along */
+  var cues = [
+    [0, 1.9, 'Welcome back to the farm!', 'dog'],
+    [2.02, 6.7, 'Cow! This is a cow. The cow says Moo!', 'cow-happy'],
+    [6.82, 10.3, "Hmm, not seven. Let's count the dogs together!", 'dog'],
+    [10.41, 17.6, 'Hooray! You counted EVERY animal in the barn! Three gold stars for you!', 'sheep-happy'],
+    [17.72, 22.6, 'Uh oh, the gate is open again! Here they come!', 'pig-happy'],
+    [22.71, 30, 'Shhh... all the animals are sleeping in the barn. Tap them to count them!', 'cow-sleep']
+  ];
+  var a = document.getElementById('sample'), b = document.getElementById('play'), sub = document.getElementById('sub'), talker = document.getElementById('talker'), idle = sub.textContent;
+  function set(on) { b.setAttribute('aria-pressed', on ? 'true' : 'false'); b.textContent = on ? '⏹ Stop' : '🎧 Hear the narrator'; talker.classList.toggle('on', on); if (!on) { sub.textContent = idle; talker.src = '/landing-page/sprites/cow-happy.png'; } }
   b.addEventListener('click', function () {
     if (a.paused) { a.currentTime = 0; a.play().then(function () { set(true); }).catch(function () { set(false); }); }
     else { a.pause(); set(false); }
   });
+  a.addEventListener('timeupdate', function () {
+    var t = a.currentTime, c = null;
+    for (var i = 0; i < cues.length; i++) if (t >= cues[i][0] && t < cues[i][1]) c = cues[i];
+    if (c) { if (sub.textContent !== c[2]) { sub.textContent = c[2]; talker.src = '/landing-page/sprites/' + c[3] + '.png'; } }
+  });
   a.addEventListener('ended', function () { set(false); });
   a.addEventListener('pause', function () { set(false); });
+
+  /* the barn quiz: three pigs are sleeping */
+  var quiz = document.getElementById('quiz'), say = document.getElementById('quiz-say'), again = document.getElementById('quiz-again'), done = false;
+  var words = { 1: 'one', 2: 'two', 3: 'three', 4: 'four' };
+  quiz.querySelector('.quiz-choices').addEventListener('click', function (e) {
+    var n = e.target.closest('.num-btn'); if (!n || done) return;
+    var v = +n.getAttribute('data-n');
+    if (v === 3) {
+      done = true; n.classList.add('right'); say.textContent = '⭐ Hooray! Three pigs! Three sleepy pigs! ⭐'; say.hidden = false; again.hidden = false;
+      quiz.querySelectorAll('.pigs img').forEach(function (p, i) { setTimeout(function () { p.classList.add('wake'); }, i * 120); });
+      sfx('cheer', .7); sfx('success', .5);
+      if (!reduce) for (var i = 0; i < 26; i++) {
+        var c = document.createElement('span'); c.className = 'confetti';
+        c.style.cssText = 'left:' + (10 + Math.random() * 80) + '%;top:' + (10 + Math.random() * 30) + '%;background:' + ['#ff6b6b', '#54a0ff', '#48c774', '#ffd23f', '#a29bfe', '#ff9f43'][i % 6] + ';animation-delay:' + (Math.random() * .4) + 's;transform:rotate(' + (Math.random() * 360) + 'deg)';
+        quiz.appendChild(c); setTimeout(function (c) { c.remove(); }, 2000, c);
+      }
+    } else {
+      n.classList.add('wrong'); say.textContent = 'Hmm, not ' + words[v] + ". Let's count them together! One… two… three!"; say.hidden = false; sfx('oops', .6);
+    }
+  });
+  again.addEventListener('click', function () {
+    done = false; say.hidden = true; again.hidden = true;
+    quiz.querySelectorAll('.num-btn').forEach(function (x) { x.classList.remove('right', 'wrong'); });
+    quiz.querySelectorAll('.pigs img').forEach(function (p) { p.classList.remove('wake'); });
+  });
 })();
 </script>
 </body>
