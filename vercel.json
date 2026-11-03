@@ -116,6 +116,39 @@
           "value": "no-cache"
         }
       ]
+    },
+    {
+      "source": "/landing-page",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache"
+        }
+      ]
+    },
+    {
+      "source": "/landing-page/index.html",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache"
+        }
+      ]
+    },
+    {
+      "source": "/landing-page/(.*)\\.(jpg|m4a)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=604800"
+        }
+      ]
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/landing-page",
+      "destination": "/landing-page/index.html"
     }
   ]
 }

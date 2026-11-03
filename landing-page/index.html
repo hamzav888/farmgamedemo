@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sunny Barn Farm — a gentle first farm game for ages 1–5</title>
+<meta name="description" content="Tap the animals to hear their real sounds and learn their names, watch day turn to night, and count the sleeping animals in the big red barn. Free, no ads, nothing to read, works offline. Seven mini-games.">
+<meta name="theme-color" content="#6ab04c">
+<link rel="canonical" href="https://farmgamedemo.vercel.app/landing-page">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Sunny Barn Farm">
+<meta property="og:title" content="Sunny Barn Farm — a gentle first farm game for ages 1–5">
+<meta property="og:description" content="Tap the animals, hear their real sounds, learn their names and count them to sleep in the big red barn. Free, no ads, nothing to read.">
+<meta property="og:url" content="https://farmgamedemo.vercel.app/landing-page">
+<meta property="og:image" content="https://farmgamedemo.vercel.app/landing-page/img/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+
+<!-- the game's own icons and typeface, read from the game's folders (nothing here is loaded by the game) -->
+<link rel="icon" href="/icons/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="icon" href="/icons/favicon-16.png" sizes="16x16" type="image/png">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<link rel="preload" href="/fonts/fredoka.woff2" as="font" type="font/woff2" crossorigin>
+
+<style>
+@font-face {
+  font-family: 'Fredoka';
+  src: url('/fonts/fredoka.woff2') format('woff2');
+  font-weight: 400 700; font-style: normal; font-display: swap;
+}
+:root {
+  color-scheme: light;
+  --green: #6ab04c; --green-deep: #478f2f; --green-dark: #2f6b22; --grass: #a6dd7a;
+  --cream: #fff8e8; --paper: #fffdf7; --line: #efe2c6;
+  --ink: #2b2118; --ink-soft: #6f5d4b; --ink-faint: #9a8874;
+  --red: #d9452b; --sun: #ffd23f; --sky: #c7ecff; --sky-deep: #8fd3ff; --night: #1b2a4a;
+  --radius: 22px;
+  --shadow: 0 18px 40px -18px rgba(60, 40, 10, .35), 0 2px 6px rgba(60, 40, 10, .08);
+  --font: 'Fredoka', 'Segoe UI Rounded', 'Arial Rounded MT Bold', 'Nunito', system-ui, -apple-system, sans-serif;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0; background: var(--cream); color: var(--ink);
+  font-family: var(--font); font-size: 18px; line-height: 1.55; font-weight: 400;
+  -webkit-font-smoothing: antialiased; overflow-x: hidden;
+}
+img { max-width: 100%; height: auto; display: block; }
+a { color: var(--green-dark); }
+h1, h2, h3 { line-height: 1.12; margin: 0; font-weight: 600; letter-spacing: -.01em; }
+p { margin: 0; }
+.wrap { width: min(1120px, 100% - 40px); margin-inline: auto; }
+:focus-visible { outline: 3px solid var(--night); outline-offset: 3px; border-radius: 8px; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* buttons, in the game's own "Let's Play!" style */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: .45em;
+  padding: 15px 30px; border-radius: 999px; border: 0; cursor: pointer; text-decoration: none;
+  font: 600 21px/1 var(--font); color: #fff;
+  background: linear-gradient(#86d262, #5aa83a); box-shadow: 0 5px 0 #3b7a27, 0 14px 28px -12px rgba(45, 100, 25, .6);
+  text-shadow: 0 1px 0 rgba(0,0,0,.18);
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+.btn:hover { transform: translateY(-2px); box-shadow: 0 7px 0 #3b7a27, 0 18px 30px -12px rgba(45, 100, 25, .6); }
+.btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #3b7a27; }
+.btn-ghost {
+  background: #fff; color: var(--ink); text-shadow: none;
+  box-shadow: 0 4px 0 #e2d3b4, inset 0 0 0 2px #efe2c6;
+}
+.btn-ghost:hover { box-shadow: 0 6px 0 #e2d3b4, inset 0 0 0 2px #efe2c6; }
+.btn-ghost:active { box-shadow: 0 1px 0 #e2d3b4, inset 0 0 0 2px #efe2c6; }
+.btn-big { font-size: 26px; padding: 20px 40px; }
+
+/* header */
+.top { position: relative; z-index: 2; }
+.top .wrap { display: flex; align-items: center; gap: 14px; padding-block: 16px; }
+.brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--ink); font-weight: 600; font-size: 21px; }
+.brand img { width: 40px; height: 40px; border-radius: 11px; box-shadow: 0 2px 6px rgba(0,0,0,.12); }
+.nav { margin-left: auto; display: flex; align-items: center; gap: 6px 22px; }
+.nav a:not(.btn) { color: var(--ink-soft); text-decoration: none; font-weight: 500; }
+.nav a:not(.btn):hover { color: var(--ink); }
+.nav .btn { padding: 10px 20px; font-size: 18px; }
+@media (max-width: 680px) { .nav a:not(.btn) { display: none; } }
+
+/* hero */
+.hero { position: relative; background: linear-gradient(180deg, #bde7ff 0%, #e3f5ff 70%, #eef9ff 100%); padding: 24px 0 120px; overflow: hidden; }
+.hero::before { /* the sun */
+  content: ""; position: absolute; right: 8%; top: -70px; width: 220px; height: 220px; border-radius: 50%;
+  background: radial-gradient(circle, #ffe680 0 46%, rgba(255, 220, 90, .45) 50%, rgba(255, 220, 90, 0) 72%);
+}
+.hero .wrap { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: 40px; align-items: center; }
+.eyebrow { display: inline-flex; align-items: center; gap: 8px; padding: 7px 14px; border-radius: 999px; background: #fff; color: var(--green-dark); font-weight: 600; font-size: 15px; box-shadow: 0 2px 8px rgba(40, 60, 30, .12); }
+.eyebrow b { color: var(--red); }
+h1 { font-size: clamp(44px, 7vw, 76px); margin-top: 18px; color: #1f3b14; }
+.lead { font-size: clamp(19px, 2.2vw, 23px); color: #3a4a30; margin-top: 16px; max-width: 34ch; }
+.cta { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 28px; }
+.trust { display: flex; flex-wrap: wrap; gap: 8px 18px; margin-top: 22px; color: #4e5f44; font-size: 16px; font-weight: 500; }
+.trust span::before { content: "✓ "; color: var(--green-deep); font-weight: 700; }
+.shot {
+  border-radius: var(--radius); overflow: hidden; background: #fff; padding: 9px; box-shadow: var(--shadow);
+}
+.shot img { border-radius: calc(var(--radius) - 9px); aspect-ratio: 16 / 10; object-fit: cover; }
+.hero .shot { transform: rotate(-1.2deg); }
+.hero .shot:hover { transform: rotate(0deg); transition: transform .35s ease; }
+.hero .hill { position: absolute; left: 0; right: 0; bottom: -2px; width: 100%; height: 110px; display: block; }
+@media (max-width: 860px) {
+  .hero { padding-bottom: 96px; }
+  .hero .wrap { grid-template-columns: 1fr; gap: 30px; }
+  .hero .shot { transform: none; }
+  .hero::before { right: -40px; top: -90px; width: 180px; height: 180px; }
+}
+
+/* sections */
+section { padding: 72px 0; }
+.sec-head { max-width: 62ch; margin-bottom: 36px; }
+.kicker { display: inline-block; padding: 5px 12px; border-radius: 999px; background: #e8f5df; color: var(--green-dark); font-weight: 600; font-size: 14px; letter-spacing: .02em; text-transform: uppercase; }
+h2 { font-size: clamp(30px, 4.2vw, 44px); margin-top: 12px; }
+.sec-head p { margin-top: 12px; color: var(--ink-soft); font-size: 19px; }
+.alt { background: var(--paper); border-block: 2px solid var(--line); }
+.night { background: linear-gradient(180deg, #1b2a4a, #223a63); color: #eef4ff; border: 0; }
+.night .kicker { background: rgba(255,255,255,.12); color: #ffe680; }
+.night .sec-head p { color: #c9d6ee; }
+.night .shot { background: #0f1a33; }
+
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; }
+.card { background: #fff; border: 2px solid var(--line); border-radius: var(--radius); padding: 24px 22px; }
+.card .ico { width: 58px; height: 58px; border-radius: 18px; display: grid; place-items: center; font-size: 30px; background: var(--c, #e8f5df); margin-bottom: 14px; }
+.card h3 { font-size: 22px; }
+.card p { margin-top: 8px; color: var(--ink-soft); font-size: 17px; }
+.card q { font-style: italic; color: var(--ink); }
+
+.two { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 24px; }
+figure { margin: 0; }
+figcaption { margin-top: 12px; font-size: 16px; color: inherit; opacity: .85; }
+
+.games { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 22px; }
+.game { background: #fff; border: 2px solid var(--line); border-radius: var(--radius); overflow: hidden; display: flex; flex-direction: column; }
+.game img { aspect-ratio: 16 / 10; object-fit: cover; width: 100%; }
+.game .body { padding: 18px 20px 20px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
+.game h3 { font-size: 21px; }
+.game p { color: var(--ink-soft); font-size: 16px; flex: 1; }
+.teach { align-self: flex-start; font-size: 14px; font-weight: 600; color: var(--green-dark); background: #e8f5df; padding: 4px 10px; border-radius: 999px; }
+
+.sound { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 36px; align-items: center; }
+.player { background: #fff; border: 2px solid var(--line); border-radius: var(--radius); padding: 26px; display: flex; align-items: center; gap: 20px; box-shadow: var(--shadow); }
+.play {
+  flex: none; width: 82px; height: 82px; border-radius: 50%; border: 0; cursor: pointer; color: #fff; font-size: 34px;
+  background: linear-gradient(#86d262, #5aa83a); box-shadow: 0 5px 0 #3b7a27; display: grid; place-items: center;
+}
+.play:active { transform: translateY(2px); box-shadow: 0 2px 0 #3b7a27; }
+.play[aria-pressed="true"] { background: linear-gradient(#ff8a6b, #d9452b); box-shadow: 0 5px 0 #9a2f1b; }
+.player strong { display: block; font-size: 20px; }
+.player small { display: block; color: var(--ink-soft); font-size: 15px; margin-top: 4px; }
+.bars { display: flex; gap: 4px; align-items: flex-end; height: 26px; margin-top: 10px; }
+.bars i { width: 5px; height: 6px; border-radius: 3px; background: var(--green); opacity: .45; transition: height .2s; }
+.player.on .bars i { animation: bar .7s ease-in-out infinite alternate; opacity: 1; }
+.player.on .bars i:nth-child(2n) { animation-delay: .18s; } .player.on .bars i:nth-child(3n) { animation-delay: .32s; }
+@keyframes bar { from { height: 6px; } to { height: 26px; } }
+@media (max-width: 860px) { .sound { grid-template-columns: 1fr; } }
+
+.list { list-style: none; padding: 0; margin: 0; display: grid; gap: 12px; }
+.list li { display: flex; gap: 12px; align-items: flex-start; font-size: 17px; }
+.list li::before { content: "✓"; flex: none; width: 26px; height: 26px; border-radius: 50%; background: #e8f5df; color: var(--green-dark); font-weight: 700; display: grid; place-items: center; font-size: 15px; margin-top: 2px; }
+.steps { counter-reset: s; list-style: none; padding: 0; margin: 0; display: grid; gap: 14px; }
+.steps li { display: flex; gap: 14px; align-items: flex-start; font-size: 17px; }
+.steps li::before { counter-increment: s; content: counter(s); flex: none; width: 30px; height: 30px; border-radius: 50%; background: var(--sun); color: #5a3d00; font-weight: 700; display: grid; place-items: center; }
+.box { background: #fff; border: 2px solid var(--line); border-radius: var(--radius); padding: 26px; }
+.box h3 { font-size: 22px; margin-bottom: 16px; }
+.tip { margin-top: 16px; padding: 12px 16px; background: #fff6d6; border-radius: 14px; color: #5a3d00; font-size: 16px; }
+
+.cta-band { background: linear-gradient(135deg, #5aa83a, #3f8a2e); color: #fff; text-align: center; padding: 70px 0; }
+.cta-band h2 { color: #fff; }
+.cta-band p { margin-top: 10px; color: #e3f5d9; font-size: 19px; }
+.cta-band .btn { margin-top: 26px; background: linear-gradient(#fff3c2, #ffd23f); color: #5a3d00; text-shadow: none; box-shadow: 0 5px 0 #c99a00, 0 14px 28px -12px rgba(0,0,0,.35); }
+.cta-band .btn:hover { box-shadow: 0 7px 0 #c99a00, 0 18px 30px -12px rgba(0,0,0,.35); }
+.cta-band .btn:active { box-shadow: 0 2px 0 #c99a00; }
+.cta-band .url { margin-top: 18px; font-size: 17px; color: #d2ecc6; }
+
+footer { padding: 36px 0 48px; color: var(--ink-soft); font-size: 15px; }
+footer .wrap { display: grid; gap: 14px; }
+footer nav { display: flex; flex-wrap: wrap; gap: 8px 22px; }
+footer nav a { color: var(--ink); text-decoration: none; font-weight: 500; }
+footer nav a:hover { text-decoration: underline; }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .btn, .hero .shot { transition: none; }
+  .player.on .bars i { animation: none; height: 16px; }
+}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="/landing-page"><img src="/icons/icon-192.png" width="40" height="40" alt="">Sunny Barn Farm</a>
+    <nav class="nav" aria-label="Page">
+      <a href="#inside">What's inside</a>
+      <a href="#games">Mini-games</a>
+      <a href="#parents">For parents</a>
+      <a class="btn" href="/">▶ Play</a>
+    </nav>
+  </div>
+</header>
+
+<section class="hero" aria-labelledby="title">
+  <div class="wrap">
+    <div>
+      <span class="eyebrow">Free · No ads · <b>Ages 1–5</b></span>
+      <h1 id="title">Sunny Barn Farm</h1>
+      <p class="lead">A gentle first farm game. Tap the animals to hear their real sounds and learn their names, watch the day turn to night, and count the sleeping animals in the big red barn. A friendly narrator does all the reading.</p>
+      <div class="cta">
+        <a class="btn btn-big" href="/">▶ Play now</a>
+        <a class="btn btn-ghost btn-big" href="#inside">See what's inside</a>
+      </div>
+      <div class="trust">
+        <span>Nothing to read</span>
+        <span>Works offline</span>
+        <span>Phone, tablet or desktop</span>
+      </div>
+    </div>
+    <div class="shot">
+      <img src="/landing-page/img/farm-day.jpg" width="1600" height="1000" fetchpriority="high" alt="The farm on a sunny day: a red barn, cows, a horse, pigs in the mud, chickens by the coop, cats, ducks on the pond and a tractor.">
+    </div>
+  </div>
+  <svg class="hill" viewBox="0 0 1440 110" preserveAspectRatio="none" aria-hidden="true">
+    <path d="M0,60 C240,110 480,10 720,55 C960,100 1200,20 1440,65 L1440,110 L0,110 Z" fill="#fff8e8"/>
+  </svg>
+</section>
+
+<section id="inside" aria-labelledby="inside-h">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="kicker">What's on the farm</span>
+      <h2 id="inside-h">Tap, listen, count</h2>
+      <p>Everything a one-year-old can do is a tap. Everything a four-year-old wants is in there too.</p>
+    </div>
+    <div class="cards">
+      <article class="card" style="--c:#ffe9e3">
+        <div class="ico">🐄</div>
+        <h3>Tap an animal</h3>
+        <p><q>Cow! This is a cow. The cow says Moo!</q> A big name card, a real recording of the animal, and a trick on the second tap: the pig rolls in the mud, the chicken lays an egg, the duck dives.</p>
+      </article>
+      <article class="card" style="--c:#e4e9ff">
+        <div class="ico">🌙</div>
+        <h3>Day turns to night</h3>
+        <p>At dusk the animals walk into the barn and the doors close. Fireflies come out, an owl hoots in the tree, frogs croak on the lily pads, and a music-box lullaby takes over from the banjo.</p>
+      </article>
+      <article class="card" style="--c:#fff2c9">
+        <div class="ico">🧮</div>
+        <h3>Count them to sleep</h3>
+        <p>Inside the barn the animals snore in little rows. Tap each one and the narrator counts with you: <q>One… two… three! There are three pigs!</q> The quiz then zooms in on just the cats, so there is only one thing to count.</p>
+      </article>
+      <article class="card" style="--c:#e8f5df">
+        <div class="ico">⭐</div>
+        <h3>Collect stars</h3>
+        <p>Every count, quiz answer and listening round earns a star, and they are kept between visits. Count every animal in the barn for a three-star firework show.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section class="night" aria-labelledby="night-h">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="kicker">After dark</span>
+      <h2 id="night-h">The farm goes to bed</h2>
+      <p>Night comes by itself every couple of minutes, or at the tap of the 🌞 button. It is the calmest part of the game, and the part where the counting happens.</p>
+    </div>
+    <div class="two">
+      <figure>
+        <div class="shot"><img src="/landing-page/img/farm-night.jpg" width="1280" height="800" loading="lazy" alt="The farm at night: the barn lit from inside, fireflies over the grass, frogs on the lily pads and an owl in the tree."></div>
+        <figcaption>Fireflies, frogs, an owl and crickets. Tap the owl and he hoots back.</figcaption>
+      </figure>
+      <figure>
+        <div class="shot"><img src="/landing-page/img/barn-night.jpg" width="1280" height="800" loading="lazy" alt="Inside the barn at night: horses, cows, pigs, sheep, a goat, chickens, ducks, a dog and cats all asleep in their pens under a moonlit window."></div>
+        <figcaption>Inside, everyone is asleep in rows. Tap to count, tap twice to wake one up for a moment.</figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<section id="games" aria-labelledby="games-h">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="kicker">Mini-games</span>
+      <h2 id="games-h">Seven little games, one farm</h2>
+      <p>Each one teaches a different thing, drawn in the farm's own art and spoken by the farm's own narrator. Tap 🎮 on the farm to pick one. Stars earned here count on the farm too.</p>
+    </div>
+    <div class="games">
+      <article class="game">
+        <img src="/landing-page/img/mini-band.jpg" width="1280" height="800" loading="lazy" alt="Farm Band: a cow, pig, sheep, dog, chicken and rooster standing on coloured drums.">
+        <div class="body"><h3>🎵 Farm Band</h3><p>Five animals on coloured drums. Every tap is a banjo note, so anything bashed out sounds like a tune. Copy the rooster's tune for a concert.</p><span class="teach">Cause &amp; effect · memory</span></div>
+      </article>
+      <article class="game">
+        <img src="/landing-page/img/mini-stars.jpg" width="1280" height="800" loading="lazy" alt="Star Animals: numbered stars in a night sky with a sleepy moon.">
+        <div class="body"><h3>⭐ Star Animals</h3><p>Night-sky dot-to-dot. Join the stars one, two, three and the lines light up; finish, and a real animal fades into the constellation to say hello.</p><span class="teach">Number order 1–7</span></div>
+      </article>
+      <article class="game">
+        <img src="/landing-page/img/mini-tractor.jpg" width="1280" height="800" loading="lazy" alt="Tractor Ride: a red tractor with a trailer in a field with hay bales, puddles, sheep, chickens and a dog.">
+        <div class="body"><h3>🚜 Tractor Ride</h3><p>Tap anywhere and the tractor drives there, trailer bouncing behind. Scoop up the hay bales, splash through puddles, honk at the dog, then deliver the load to the barn.</p><span class="teach">Cause &amp; effect · counting</span></div>
+      </article>
+      <article class="game">
+        <img src="/landing-page/img/mini-veggie.jpg" width="1280" height="800" loading="lazy" alt="Veggie Patch: a crate of corn, carrot and tomato below a garden bed with shaped holes.">
+        <div class="body"><h3>🥕 Veggie Patch</h3><p>Drag vegetables from the crate into the shaped holes in the scarecrow's garden. Round three puts carrot and pumpkin, both orange, together, so the shape has to do the work.</p><span class="teach">Shapes · colour words</span></div>
+      </article>
+      <article class="game">
+        <img src="/landing-page/img/mini-hide.jpg" width="1280" height="800" loading="lazy" alt="Hide and Seek: the narrator asks where the horse is, and the horse peeks out of a bush beside a tree, a hay pile, a tractor and a pond.">
+        <div class="body"><h3>🔍 Hide &amp; Seek</h3><p><q>Where's the cow?</q> Behind the tree, in the hay with her ears showing, or in the pond with her eyes above the water. Stuck? After a moment she moos.</p><span class="teach">Observation · listening</span></div>
+      </article>
+      <article class="game">
+        <img src="/landing-page/img/mini-piglets.jpg" width="1280" height="800" loading="lazy" alt="Runaway Piglets: two piglets running across a field away from their sty while a dog watches.">
+        <div class="body"><h3>🐷 Runaway Piglets</h3><p>The piglets have escaped! Tap one to catch it and it floats back to the sty. They get faster each round, and the dog's bark freezes them for a moment.</p><span class="teach">Tracking · reflexes</span></div>
+      </article>
+      <article class="game">
+        <img src="/landing-page/img/mini-bath.jpg" width="1280" height="800" loading="lazy" alt="Muddy Pig Bath: a very muddy pig sitting in a bathtub with a rubber duck and a sponge.">
+        <div class="body"><h3>🛁 Muddy Pig Bath</h3><p>Rub anywhere and the sponge wipes the mud off a huge pig, with bubbles and giggles. Clean, he jumps for joy, then rolls in the mud again.</p><span class="teach">Motor control · clean &amp; dirty</span></div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section class="alt" id="sound" aria-labelledby="sound-h">
+  <div class="wrap sound">
+    <div>
+      <span class="kicker">Sound</span>
+      <h2 id="sound-h">Real animals, a real voice</h2>
+      <p class="sec-head" style="margin:12px 0 0">Every animal is a real recording, and the narrator has a warm, natural voice that names, counts and cheers. By day there is a banjo tune and birdsong; by night, crickets, an owl and a lullaby. Turn the sound on 🔊 before the first tap and let the farm do the talking.</p>
+    </div>
+    <div class="player" id="player">
+      <button class="play" id="play" type="button" aria-pressed="false" aria-label="Play a 30-second sample of the narrator">▶</button>
+      <div>
+        <strong>Hear the narrator</strong>
+        <small>Six lines from the game, 30 seconds.</small>
+        <div class="bars" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+      </div>
+      <audio id="sample" preload="none" src="/landing-page/narrator-sample.m4a"></audio>
+    </div>
+  </div>
+</section>
+
+<section id="parents" aria-labelledby="parents-h">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="kicker">For parents</span>
+      <h2 id="parents-h">Made for little hands</h2>
+      <p>Built for a one-year-old on a parent's phone and a four-year-old on the family tablet, and nothing in between to trip over.</p>
+    </div>
+    <div class="two">
+      <div class="box">
+        <h3>What you can count on</h3>
+        <ul class="list">
+          <li>Nothing to read. The narrator runs everything, so it works before letters do.</li>
+          <li>No fail states. A wrong answer is a gentle <q>let's count them together</q>, then another go.</li>
+          <li>Big targets. Every animal has an extra-large touch area, and the buttons grow on small screens.</li>
+          <li>No ads, no in-app purchases, no accounts, nothing collected. Stars are saved on the device only.</li>
+          <li>Plays offline after the first visit, so it works in the car.</li>
+          <li>Best in landscape on a phone or tablet. It works on a desktop too.</li>
+        </ul>
+      </div>
+      <div class="box">
+        <h3>Put it on the home screen</h3>
+        <ol class="steps">
+          <li><span><strong>iPhone or iPad:</strong> open the game in Safari, tap <strong>Share</strong>, then <strong>Add to Home Screen</strong>.</span></li>
+          <li><span><strong>Android:</strong> open it in Chrome, tap the <strong>⋮</strong> menu, then <strong>Install app</strong> (or <strong>Add to Home screen</strong>).</span></li>
+          <li><span>Open it from the icon and it fills the screen like any other app, sound and all.</span></li>
+        </ol>
+        <p class="tip">Tip: the first tap on <strong>▶ Let's Play!</strong> is what lets the sound start, so turn the volume up before you hand it over.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="cta-band" aria-labelledby="go-h">
+  <div class="wrap">
+    <h2 id="go-h">Ready to visit the farm?</h2>
+    <p>No download, no sign-up. It opens in the browser and plays straight away.</p>
+    <a class="btn btn-big" href="/">▶ Play Sunny Barn Farm</a>
+    <p class="url">farmgamedemo.vercel.app</p>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <nav aria-label="Links">
+      <a href="/">Play the game</a>
+      <a href="/minigames/">Mini-game showcase</a>
+      <a href="https://github.com/hamzav888/farmgamedemo">Source on GitHub</a>
+      <a href="https://github.com/hamzav888/farmgamedemo/blob/main/CREDITS.md">Sound credits</a>
+    </nav>
+    <p>Sunny Barn Farm is free and open source. The animal calls, foley and ambience are recordings from Freesound, used under CC0 and CC BY licences and credited in full on GitHub. The Fredoka typeface is used under the SIL Open Font License.</p>
+  </div>
+</footer>
+
+<script>
+(function () {
+  var a = document.getElementById('sample'), b = document.getElementById('play'), p = document.getElementById('player');
+  if (!a || !b) return;
+  function set(on) { b.setAttribute('aria-pressed', on ? 'true' : 'false'); b.textContent = on ? '■' : '▶'; p.classList.toggle('on', on); }
+  b.addEventListener('click', function () {
+    if (a.paused) { a.currentTime = 0; a.play().then(function () { set(true); }).catch(function () { set(false); }); }
+    else { a.pause(); set(false); }
+  });
+  a.addEventListener('ended', function () { set(false); });
+  a.addEventListener('pause', function () { set(false); });
+})();
+</script>
+</body>
+</html>
