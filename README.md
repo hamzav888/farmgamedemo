@@ -270,9 +270,11 @@ so they can never drift from the art in the app. After changing an animal's artw
 
 ### The landing page
 
-`/landing-page` is a separate static page in `landing-page/` built to look like the game itself: the start
-screen on a farm, the learning cards, the barn quiz, the mini-game picker, all in the styles of `css/style.css`
-and `minigames/mg.css`. Its pictures are the game's own art, rendered by `js/animals.js` / `js/scenery.js` to
+`/landing-page` is a separate static page in `landing-page/`: a coming-soon preview built to look like the game
+itself. The start screen sits on a farm with a "Coming soon" sticker, and the orange button shakes and makes an
+excuse ("the cow is still brushing her teeth") instead of starting the game; the learning cards, the barn quiz
+and the mini-game picker (each card badged "Soon") follow, all in the styles of `css/style.css` and
+`minigames/mg.css`. Nothing on it links into the game; "Tell a friend" opens the share sheet or copies the link. Its pictures are the game's own art, rendered by `js/animals.js` / `js/scenery.js` to
 transparent PNGs by `tools/make-sprites.html` (open it on the dev server; instructions are in the file). The
 share image is `landing-page/img/og.jpg`, a 1200×630 capture of `/landing-page/?og`. Nothing in the folder is
 loaded by the game; the only shared pieces are a `vercel.json` rewrite and cache headers scoped to `/landing-page`.

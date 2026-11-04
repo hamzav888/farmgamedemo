@@ -3,15 +3,15 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Sunny Barn Farm 🐄 — a gentle first farm game for ages 1–5</title>
-<meta name="description" content="Tap the animals to hear their real sounds and learn their names, watch day turn to night, and count the sleeping animals in the big red barn. Free, no ads, nothing to read, works offline. Seven mini-games.">
+<title>Sunny Barn Farm 🐄 — coming soon! A gentle first farm game for ages 1–5</title>
+<meta name="description" content="Coming soon: a gentle first farm game for ages 1–5. Tap the animals to hear their real sounds and learn their names, watch day turn to night, and count the sleeping animals in the big red barn. Free, no ads, nothing to read, works offline. Seven mini-games.">
 <meta name="theme-color" content="#5fbdf7">
 <link rel="canonical" href="https://farmgamedemo.vercel.app/landing-page">
 
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Sunny Barn Farm">
-<meta property="og:title" content="Sunny Barn Farm 🐄 — a gentle first farm game for ages 1–5">
-<meta property="og:description" content="Tap the animals, hear their real sounds, learn their names and count them to sleep in the big red barn. Free, no ads, nothing to read.">
+<meta property="og:title" content="Sunny Barn Farm 🐄 — coming soon!">
+<meta property="og:description" content="A gentle first farm game for ages 1–5. Tap the animals, hear their real sounds, learn their names and count them to sleep in the big red barn. Free, no ads, nothing to read.">
 <meta property="og:url" content="https://farmgamedemo.vercel.app/landing-page">
 <meta property="og:image" content="https://farmgamedemo.vercel.app/landing-page/img/og.jpg">
 <meta property="og:image:width" content="1200">
@@ -160,6 +160,25 @@ section { position: relative; overflow: hidden; }
 }
 @media (max-width: 400px) { .hud .hud-btn.x, .hud .hud-btn.q { display: none; } }
 .hud .big-btn, .hud .title-pill { white-space: nowrap; }
+.hud .big-btn .short { display: none; }
+@media (max-width: 560px) { .hud .big-btn .long { display: none; } .hud .big-btn .short { display: inline; } }
+
+/* ---------- coming soon: the sticker, the orange "not yet" button, the share button ---------- */
+.sticker {
+  position: absolute; top: -20px; right: -12px; z-index: 5;
+  background: var(--yellow); color: var(--brown-soft); border: 4px solid #fff; border-radius: 999px;
+  padding: 8px 22px; font-size: 26px; font-weight: 700; white-space: nowrap; line-height: 1.1;
+  box-shadow: 0 6px 0 var(--yellow-deep), 0 8px 14px rgba(0,0,0,.25);
+  transform: rotate(7deg); animation: sticker 2.4s ease-in-out infinite;
+}
+@keyframes sticker { 0%,100% { transform: rotate(7deg) scale(1); } 50% { transform: rotate(3deg) scale(1.07); } }
+.start.soon { background: var(--orange); box-shadow: 0 8px 0 var(--orange-deep), 0 12px 20px rgba(0,0,0,.25); }
+.start.soon:active { box-shadow: 0 2px 0 var(--orange-deep); }
+.start.soon.nope { animation: nope .55s ease-in-out; }
+@keyframes nope { 0%,100% { transform: translateX(0); } 20%,60% { transform: translateX(-12px) rotate(-3deg); } 40%,80% { transform: translateX(12px) rotate(3deg); } }
+.soon-say { display: block; margin: 14px auto 0; max-width: 540px; }
+.share-row { margin-top: 18px; }
+@media (max-width: 560px) { .sticker { top: -15px; right: -7px; font-size: 18px; padding: 6px 14px; border-width: 3px; } }
 
 /* ---------- hero: the start screen, on a farm ---------- */
 .hero { padding: 36px 0 0; }
@@ -344,7 +363,7 @@ figure { text-align: center; }
 /* ---------- mini-game picker ---------- */
 #games { padding: 60px 0 70px; }
 .hub-box {
-  width: min(1180px, 100% - 24px); margin: 0 auto;
+  position: relative; width: min(1180px, 100% - 24px); margin: 0 auto;
   background: rgba(255,255,255,.94); border: 6px solid var(--red); border-radius: 36px;
   padding: 22px 32px 22px; text-align: center;
   box-shadow: 0 14px 0 rgba(0,0,0,.15), 0 20px 40px rgba(0,0,0,.3);
@@ -355,8 +374,14 @@ figure { text-align: center; }
 .game-card {
   display: flex; flex-direction: column; align-items: center; gap: 2px; text-decoration: none; color: inherit;
   background: #fff; border: 5px solid var(--yellow); border-radius: 22px;
-  padding: 8px 8px 12px; cursor: pointer;
+  padding: 8px 8px 12px; position: relative;
   box-shadow: 0 8px 0 rgba(0,0,0,.12); transition: transform .14s cubic-bezier(.2,1.8,.4,1), box-shadow .14s;
+}
+.game-card::before {
+  content: '🔜 Soon'; position: absolute; top: 14px; left: 12px; z-index: 1;
+  background: var(--yellow); color: var(--brown-soft); border: 3px solid #fff; border-radius: 999px;
+  padding: 3px 11px; font-size: 14px; font-weight: 700; line-height: 1.2;
+  box-shadow: 0 3px 0 rgba(0,0,0,.15); transform: rotate(-6deg);
 }
 .game-card:active { transform: translateY(5px); box-shadow: 0 3px 0 rgba(0,0,0,.12); }
 .game-card:nth-child(1) { border-color: var(--orange); } .game-card:nth-child(2) { border-color: var(--red); }
@@ -428,10 +453,10 @@ footer nav a { background: #fff; color: var(--brown); text-decoration: none; fon
 footer p { max-width: 70ch; margin: 0 auto; }
 
 /* ?og: the share picture (landing-page/img/og.jpg is a 1200x630 capture of this) */
-html.og .hud, html.og .howto, html.og .pills, html.og .tiny, html.og .bfly { display: none; }
-html.og .hero { padding-top: 14px; }
+html.og .hud, html.og .howto, html.og .pills, html.og .tiny, html.og .bfly, html.og .soon-block { display: none; }
+html.og .hero { padding-top: 36px; }
 html.og .splash-box { padding-bottom: 20px; }
-html.og .ground { margin-top: -120px; height: 300px; }
+html.og .ground { margin-top: -110px; height: 390px; }
 html.og .ground .barn { left: 82%; }
 html.og .ground .tractor { left: 12%; }
 html.og .ground .cow { left: 30%; display: none; }
@@ -450,13 +475,13 @@ html.og .ground .cow { left: 30%; display: none; }
 <header class="hud">
   <div class="wrap">
     <a class="title-pill" href="/landing-page"><span class="e">🐄</span>Sunny Barn Farm<span class="e">🐔</span></a>
-    <span class="star-pill">⭐ Free</span>
+    <span class="star-pill">🔜 Coming soon</span>
     <nav aria-label="Page">
       <a class="hud-btn x" href="#inside" title="What's on the farm" aria-label="What's on the farm">🏡</a>
       <a class="hud-btn" href="#games" title="Mini-games" aria-label="Mini-games">🎮</a>
       <a class="hud-btn x" href="#sound" title="Sounds" aria-label="Sounds">🔊</a>
       <a class="hud-btn q" href="#parents" title="For grown-ups" aria-label="For grown-ups">❓</a>
-      <a class="big-btn quiz" href="/">▶ Play</a>
+      <a class="big-btn eggs" href="#soon"><span class="long">🔔 Coming soon!</span><span class="short">🔔 Soon!</span></a>
     </nav>
   </div>
 </header>
@@ -471,6 +496,7 @@ html.og .ground .cow { left: 30%; display: none; }
   <img class="bfly b2 sp" src="/landing-page/sprites/butterfly-2.png" alt="" width="98" height="67">
 
   <div class="splash-box">
+    <div class="sticker" aria-hidden="true">🔜 Coming soon!</div>
     <h1 id="title">🐄 Sunny Barn Farm 🐔</h1>
     <p class="tag">A farm to explore, listen to, and count on! <span class="ages">Ages 1–5</span></p>
     <div class="row" role="img" aria-label="Cow, horse, pig, sheep, chicken, duck and cat">
@@ -490,8 +516,11 @@ html.og .ground .cow { left: 30%; display: none; }
       <li><span>🔢</span><div>At <b>night</b>, count the sleeping animals in the barn!</div></li>
       <li><span>🎮</span><div><b>Seven</b> mini-games, one friendly narrator</div></li>
     </ul>
-    <a class="start" href="/">▶ Let's Play!</a>
-    <p class="tiny">Turn your sound on! 🔊</p>
+    <div class="soon-block">
+      <button class="start soon soon-btn" type="button">🔔 Coming soon!</button>
+      <div class="subtitle soon-say" hidden aria-live="polite"></div>
+    </div>
+    <p class="tiny">Scroll down for a sneak peek 👇</p>
     <div class="pills"><span>🆓 Free</span><span>🚫 No ads</span><span>📖 Nothing to read</span><span>✈️ Works offline</span><span class="dev">📱 Phone, tablet or desktop</span></div>
   </div>
 
@@ -608,53 +637,52 @@ html.og .ground .cow { left: 30%; display: none; }
 <section id="games" class="sunset" aria-labelledby="games-h">
   <div class="hub-box pop">
     <h2 class="splash-h" id="games-h">🐄 Mini-Games 🐔</h2>
-    <p class="tag">Pick a game! <span class="hub-stars">⭐ 7 games</span></p>
+    <p class="tag">Seven games are on the way! <span class="hub-stars">🔜 Coming soon</span></p>
     <div class="hub-grid">
-      <a class="game-card" href="/minigames/">
+      <div class="game-card">
         <img class="gc-preview" src="/landing-page/img/mini-veggie.jpg" width="1280" height="800" loading="lazy" alt="Veggie Patch: a crate of corn, carrot and tomato below a garden bed with shaped holes.">
         <span class="gc-row"><span class="gc-emoji">🥕</span><span class="gc-name">Veggie Patch</span></span>
         <span class="gc-blurb">Match each vegetable to its shape</span>
         <span class="gc-teach">Shapes · colour words</span>
-      </a>
-      <a class="game-card" href="/minigames/">
+      </div>
+      <div class="game-card">
         <img class="gc-preview" src="/landing-page/img/mini-tractor.jpg" width="1280" height="800" loading="lazy" alt="Tractor Ride: a red tractor with a trailer in a field with hay bales, puddles, sheep, chickens and a dog.">
         <span class="gc-row"><span class="gc-emoji">🚜</span><span class="gc-name">Tractor Ride</span></span>
         <span class="gc-blurb">Drive! Collect the hay and bring it to the barn</span>
         <span class="gc-teach">Cause &amp; effect · counting</span>
-      </a>
-      <a class="game-card" href="/minigames/">
+      </div>
+      <div class="game-card">
         <img class="gc-preview" src="/landing-page/img/mini-piglets.jpg" width="1280" height="800" loading="lazy" alt="Runaway Piglets: two piglets running across a field away from their sty while a dog watches.">
         <span class="gc-row"><span class="gc-emoji">🐷</span><span class="gc-name">Runaway Piglets</span></span>
         <span class="gc-blurb">Catch the piglets before they get away!</span>
         <span class="gc-teach">Tracking · reflexes</span>
-      </a>
-      <a class="game-card" href="/minigames/">
+      </div>
+      <div class="game-card">
         <img class="gc-preview" src="/landing-page/img/mini-hide.jpg" width="1280" height="800" loading="lazy" alt="Hide and Seek: the narrator asks where the horse is, and the horse peeks out of a bush beside a tree, a hay pile, a tractor and a pond.">
         <span class="gc-row"><span class="gc-emoji">🔍</span><span class="gc-name">Hide &amp; Seek</span></span>
         <span class="gc-blurb">Who is hiding? Find the animals around the farm</span>
         <span class="gc-teach">Observation · listening</span>
-      </a>
-      <a class="game-card" href="/minigames/">
+      </div>
+      <div class="game-card">
         <img class="gc-preview" src="/landing-page/img/mini-stars.jpg" width="1280" height="800" loading="lazy" alt="Star Animals: numbered stars in a night sky with a sleepy moon.">
         <span class="gc-row"><span class="gc-emoji">⭐</span><span class="gc-name">Star Animals</span></span>
         <span class="gc-blurb">Join the stars 1, 2, 3… and see who appears</span>
         <span class="gc-teach">Number order 1–7</span>
-      </a>
-      <a class="game-card" href="/minigames/">
+      </div>
+      <div class="game-card">
         <img class="gc-preview" src="/landing-page/img/mini-band.jpg" width="1280" height="800" loading="lazy" alt="Farm Band: a cow, pig, sheep, dog, chicken and rooster standing on coloured drums.">
         <span class="gc-row"><span class="gc-emoji">🎵</span><span class="gc-name">Farm Band</span></span>
         <span class="gc-blurb">Make music, then copy the rooster's tune</span>
         <span class="gc-teach">Cause &amp; effect · memory</span>
-      </a>
-      <a class="game-card" href="/minigames/">
+      </div>
+      <div class="game-card">
         <img class="gc-preview" src="/landing-page/img/mini-bath.jpg" width="1280" height="800" loading="lazy" alt="Muddy Pig Bath: a very muddy pig sitting in a bathtub with a rubber duck and a sponge.">
         <span class="gc-row"><span class="gc-emoji">🐷</span><span class="gc-name">Muddy Pig Bath</span></span>
         <span class="gc-blurb">Scrub the muddy pig until he shines</span>
         <span class="gc-teach">Motor control · clean &amp; dirty</span>
-      </a>
+      </div>
     </div>
-    <a class="big-btn soft" href="/">🏡 Back to the farm</a>
-    <p class="tiny">Tap 🎮 on the farm to pick one. Stars earned here count on the farm too.</p>
+    <p class="tiny">All seven come with the app. Stars earned in a mini-game count on the farm too.</p>
   </div>
 </section>
 
@@ -669,12 +697,12 @@ html.og .ground .cow { left: 30%; display: none; }
       <img class="talker sp" id="talker" src="/landing-page/sprites/cow-happy.png" alt="">
       <div class="ctrl">
         <button class="big-btn listen" id="play" type="button" aria-pressed="false">🎧 Hear the narrator</button>
-        <div class="subtitle" id="sub">Six lines from the game, 30 seconds.</div>
+        <div class="subtitle" id="sub">Six lines from the narrator, 30 seconds.</div>
       </div>
       <audio id="sample" preload="none" src="/landing-page/narrator-sample.m4a"></audio>
     </div>
     <div class="says pop" id="says">
-      <p class="hint">Tap an animal to hear its <b>real</b> call, straight from the game 👇</p>
+      <p class="hint">👀 Sneak peek! Tap an animal to hear its <b>real</b> call 👇</p>
       <button type="button" data-sfx="cow" style="--c: var(--red)"><img class="sp" src="/landing-page/sprites/cow.png" alt=""><span>🐄 Moo!</span></button>
       <button type="button" data-sfx="horse" style="--c: var(--orange)"><img class="sp" src="/landing-page/sprites/horse.png" alt=""><span>🐴 Neigh!</span></button>
       <button type="button" data-sfx="pig" style="--c: var(--pink)"><img class="sp" src="/landing-page/sprites/pig.png" alt=""><span>🐷 Oink!</span></button>
@@ -706,25 +734,31 @@ html.og .ground .cow { left: 30%; display: none; }
         <li><span>📱</span><div>Best in <b>landscape</b> on a phone or tablet. Works on a desktop too.</div></li>
       </ul>
       <div>
-        <h3>📲 Put it on the home screen</h3>
+        <h3>🔜 When it launches</h3>
         <ol class="steps">
-          <li><span class="num-btn" style="--c: var(--red)" aria-hidden="true">1</span><div><b>iPhone or iPad:</b> open the game in Safari, tap <b>Share</b>, then <b>Add to Home Screen</b>.</div></li>
-          <li><span class="num-btn" style="--c: var(--blue)" aria-hidden="true">2</span><div><b>Android:</b> open it in Chrome, tap the <b>⋮</b> menu, then <b>Install app</b> (or <b>Add to Home screen</b>).</div></li>
-          <li><span class="num-btn" style="--c: var(--green)" aria-hidden="true">3</span><div>Open it from the icon and it fills the screen like any other app, sound and all.</div></li>
+          <li><span class="num-btn" style="--c: var(--red)" aria-hidden="true">1</span><div><b>Free, with no ads</b>, no in-app purchases and no accounts. That is a promise, not a trial.</div></li>
+          <li><span class="num-btn" style="--c: var(--blue)" aria-hidden="true">2</span><div><b>Phones and tablets first.</b> It opens right in the browser with nothing to install, and sits on the home screen like any other app.</div></li>
+          <li><span class="num-btn" style="--c: var(--green)" aria-hidden="true">3</span><div><b>Check back here.</b> When it is ready, this page is where you will find it, and the orange button turns green.</div></li>
         </ol>
-        <div class="barn-hint">💡 The first tap on <b>&nbsp;▶ Let's Play!&nbsp;</b> is what lets the sound start, so turn the volume up before you hand it over.</div>
+        <div class="barn-hint">💡 Know a little farmer who would love this? Pass the page along, and we will see you on launch day.</div>
+        <div class="share-row"><button class="big-btn soft share" type="button">💌 Tell a friend</button></div>
+        <div class="subtitle soon-say" hidden aria-live="polite"></div>
       </div>
     </div>
   </div>
 </section>
 
 <!-- ===== the end ===== -->
-<section class="cta field" aria-labelledby="go-h">
+<section class="cta field" id="soon" aria-labelledby="go-h">
   <div class="wrap">
-    <h2 class="sr" id="go-h">Ready to play?</h2>
-    <div class="tap-hint">👇 Tap to play!</div>
-    <div><a class="start" href="/">▶ Let's Play!</a></div>
-    <p class="url">farmgamedemo.vercel.app · opens in the browser, nothing to install</p>
+    <h2 class="sr" id="go-h">Coming soon</h2>
+    <div class="tap-hint">🔜 Coming soon!</div>
+    <div class="soon-block">
+      <button class="start soon soon-btn" type="button">🔔 Coming soon!</button>
+      <div class="subtitle soon-say" hidden aria-live="polite"></div>
+    </div>
+    <p class="url">Sunny Barn Farm is on its way. Check back soon! 🐣</p>
+    <div class="share-row"><button class="big-btn soft share" type="button">💌 Tell a friend</button></div>
   </div>
   <div class="parade" aria-hidden="true">
     <div class="walk">
@@ -746,12 +780,10 @@ html.og .ground .cow { left: 30%; display: none; }
 <footer class="field">
   <div class="wrap">
     <nav aria-label="Links">
-      <a href="/">🏡 Play the game</a>
-      <a href="/minigames/">🎮 Mini-game showcase</a>
       <a href="https://github.com/hamzav888/farmgamedemo">💻 Source on GitHub</a>
       <a href="https://github.com/hamzav888/farmgamedemo/blob/main/CREDITS.md">🎙️ Sound credits</a>
     </nav>
-    <p>Sunny Barn Farm is free and open source. The animal calls, foley and ambience are recordings from Freesound, used under CC0 and CC BY licences and credited in full on GitHub. The Fredoka typeface is used under the SIL Open Font License.</p>
+    <p>Sunny Barn Farm will be free, with no ads, and it is open source. The animal calls, foley and ambience are recordings from Freesound, used under CC0 and CC BY licences and credited in full on GitHub. The Fredoka typeface is used under the SIL Open Font License.</p>
   </div>
 </footer>
 
@@ -823,6 +855,40 @@ html.og .ground .cow { left: 30%; display: none; }
   });
   a.addEventListener('ended', function () { set(false); });
   a.addEventListener('pause', function () { set(false); });
+
+  /* the "coming soon" button: a shake, a farm noise and an excuse from the animals */
+  var excuses = [
+    ['Not just yet! The animals are still getting ready. 🐔', 'chicken'],
+    ['Almost! The cow is still brushing her teeth. 🐄', 'cow'],
+    ['Soon! The pigs are having one last bath. 🐷', 'pig'],
+    ['The barn is getting a fresh coat of paint. 🏡', 'rooster'],
+    ['Hold your horses! It is nearly ready. 🐴', 'horse'],
+    ['The ducks are still learning to say quack. 🦆', 'duck']
+  ], ex = 0;
+  function sayNear(el, text) {
+    var box = el.closest('.soon-block, .wrap, .splash-box'), out = box && box.querySelector('.soon-say');
+    if (out) { out.textContent = text; out.hidden = false; }
+  }
+  document.querySelectorAll('.soon-btn').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var e = excuses[ex++ % excuses.length];
+      b.classList.remove('nope'); void b.offsetWidth; b.classList.add('nope');
+      sayNear(b, e[0]); sfx(e[1], .8);
+    });
+    b.addEventListener('animationend', function (ev) { if (ev.animationName === 'nope') b.classList.remove('nope'); });
+  });
+
+  /* "tell a friend": the share sheet where there is one, otherwise the link goes on the clipboard */
+  var pageUrl = 'https://farmgamedemo.vercel.app/landing-page';
+  document.querySelectorAll('.share').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var data = { title: 'Sunny Barn Farm', text: 'A gentle first farm game for ages 1–5, coming soon! 🐄', url: pageUrl };
+      if (navigator.share) { navigator.share(data).then(function () { sayNear(b, 'Thank you! 💛'); }).catch(function () { }); return; }
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(pageUrl).then(function () { sayNear(b, '📋 Link copied! Paste it to a friend.'); }, function () { sayNear(b, pageUrl); });
+      } else sayNear(b, pageUrl);
+    });
+  });
 
   /* the barn quiz: three pigs are sleeping */
   var quiz = document.getElementById('quiz'), say = document.getElementById('quiz-say'), again = document.getElementById('quiz-again'), done = false;
