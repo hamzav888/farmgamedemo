@@ -250,7 +250,7 @@ js/scenery.js            barn, trees, fences, pond, coop, tractor, windmill, sun
 js/farm.js               outdoor scene (day/night, night creatures, particles, mini-games)
 js/barn.js               barn interior scene (sleeping animals, counting, quiz, quiz camera)
 js/main.js               game loop, input, day/night cycle, HUD, cards, narration
-landing-page/            the marketing page at /landing-page (own HTML, screenshots, narrator sample, sprites); the game never loads it
+landing-page/            the launch page at /landing-page (own HTML, a screenshot, sprites); it shows the game in a frame, the game never loads it
 serve.py                 tiny local web server (python3 serve.py)
 tools/make-icons.html    regenerates icons/ from the game's own art
 tools/make-sprites.html  regenerates landing-page/sprites/ (animals, barn, tractor…) from the game's own art
@@ -270,19 +270,23 @@ so they can never drift from the art in the app. After changing an animal's artw
 
 ### The landing page
 
-`/landing-page` is a separate static page in `landing-page/`: a coming-soon launch site for the game, built like an
-app-launch page but in the game's own colours and characters. A sky hero with the smiling sun, clouds, rolling hills,
-a tilted tablet mockup and a herd standing on the grass that plays each animal's call when tapped; signpost stat
-cards; then wavy colour bands for the feature cards, screenshots, a night section with the moon, an owl and the barn
-quiz (confetti on the right answer), the seven mini-games, a sound demo with the narrator sample and speech-bubble
-animal tiles, a parents section, FAQ, a share call-to-action with the sleeping animals, a fence and a wooden footer.
-Headings, buttons and labels use the game's Fredoka; body text is the system font; buttons have the chunky
-press-down edge. Nothing on it links into the game; "Share this page" opens the share sheet or copies the link. Its
-screenshots are in `landing-page/img/`, and the small pictures are the game's own art, rendered by `js/animals.js` /
-`js/scenery.js` to transparent PNGs by `tools/make-sprites.html` (open it on the dev server; instructions are in the
-file). The share image is `landing-page/img/og.jpg`, a 1200×630 capture of `/landing-page/?og`. Nothing in the
-folder is loaded by the game; the only shared pieces are a `vercel.json` rewrite and cache headers scoped to
-`/landing-page`.
+`/landing-page` is a separate static page in `landing-page/`: a short coming-soon launch page in the game's own
+colours and characters. A sky hero with the smiling sun, clouds and rolling hills carries the headline, a **Hear the
+narrator** button and the game itself: the page at `/` loaded in an `<iframe>` inside a tablet frame, so visitors
+play the real, current build right there (on screens narrower than 760 px the frame shows a poster and a play button
+instead, and opens the game full-screen; a **Full screen** button does the same on larger screens, falling back to a
+fixed-position layer where the Fullscreen API is missing, as on iPhone). The narrator button plays the game's own
+voice clips from `voice/` one after another with a caption (the file names are in the page as a fallback, and
+`voice/manifest.json` wins once it has loaded, so a re-rendered voice still works). Below that, three white cards on
+the grass that each play a real call or a real line when tapped, a share call-to-action with the sleeping animals, a
+fence and a wooden footer. Headings, buttons and labels use the game's Fredoka; body text is the system font; buttons
+have the chunky press-down edge. The only outbound link is the sound credits. The small pictures are the game's own
+art, rendered by `js/animals.js` / `js/scenery.js` to transparent PNGs by `tools/make-sprites.html` (open it on the
+dev server; instructions are in the file); the poster is `landing-page/img/farm-day.jpg`. The share image is
+`landing-page/img/og.jpg`, a 1200×630 capture of `/landing-page/?og`. Nothing in the folder is loaded by the game;
+the only shared pieces are a `vercel.json` rewrite and cache headers scoped to `/landing-page`. (Loading `/` in the
+frame registers the game's service worker as it would on any visit; it is network-first, so the landing page is
+never served stale.)
 
 Handy test flags: `?start` (skip splash), `?night`, `?barn`, `?quiz`, `?card`
 — e.g. <http://localhost:8080/?start&night&barn>.
